@@ -1,4 +1,7 @@
 # 📦 Inventory Optimization for NovaCart (Demand Forecasting Project)
+
+![CI](https://github.com/<your-username>/<repo-name>/actions/workflows/ci.yml/badge.svg)
+
 ## 📌 Project Overview
 
 NovaCart Online Retail Pvt. Ltd. operates a large pan-India e-commerce fulfilment network.
@@ -187,6 +190,46 @@ NovaCart-Inventory-Optimization/
 
 `The final output is a SKU-level replenishment policy table that can be directly used by supply chain teams.`
 
+## 🧪 Testing & Continuous Integration (CI)
+
+This project includes basic unit tests and automated CI checks to ensure that core logic remains correct and reproducible.
+
+### Unit Tests
+
+Key business and modeling logic is covered using pytest, including:
+
+- Data utility functions (safe arithmetic, data cleaning)
+
+- Time-aware demand forecasting helpers
+
+- Inventory optimization logic (safety stock & reorder point calculations)
+
+Tests are located in the `tests/` directory and focus on validating business-critical assumptions, not just code execution.
+
+To run tests locally:
+```
+pytest
+```
+### Continuous Integration (CI)
+
+A GitHub Actions CI pipeline automatically runs all unit tests on:
+
+- Every push to the repository
+
+- Every pull request to main
+
+This ensures:
+
+- Inventory formulas remain consistent
+
+- Forecasting logic changes are validated
+
+- Regressions are caught early
+
+The CI configuration is defined in:
+```
+.github/workflows/ci.yml
+```
 
 ## 🚀 Future Improvements
 
