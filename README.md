@@ -33,13 +33,17 @@ The project aims to support NovaCart’s supply chain teams by building a data-d
 
 - Recommend clear replenishment rules usable by warehouse teams
 
-### Target Business Outcomes
+---
+
+### 🎯 Target Business Outcomes
 
 - Service Level: ≥ 96%
 
 - Stockout Rate: ≤ 2%
 
 - Excess Inventory Reduction: ≥ 15%
+
+---
 
 ## 🧠 How This Project Is Different
 
@@ -57,6 +61,8 @@ Key differentiators:
 - Explicit handling of supplier lead-time uncertainty
 
 - Scenario simulation for real-world disruptions
+
+---
 
 ## 📂 Dataset Summary
 
@@ -79,6 +85,8 @@ All datasets are validated for:
 - Business rule violations
 
 - Date correctness
+
+---
 
 ## 🛠️ Project Structure
 ```
@@ -109,74 +117,78 @@ NovaCart-Inventory-Optimization/
 └── README.md
 ```
 
+---
+
 ## 🔍 Key Steps & Methodology
 1. Business Understanding
 
-- Defined service level, stockout, and inventory cost objectives
+    - Defined service level, stockout, and inventory cost objectives
 
-- Identified operational constraints from a warehouse perspective
+    - Identified operational constraints from a warehouse perspective
 
 2. Data Validation & Cleaning
 
-- Verified SKU and supplier relationships
+    - Verified SKU and supplier relationships
 
-- Handled missing and invalid values
+    - Handled missing and invalid values
 
-- Flagged potential stockout events
+    - Flagged potential stockout events
 
 3. Exploratory Data Analysis
 
-- Demand concentration and Pareto analysis
+    - Demand concentration and Pareto analysis
 
-- Category-level seasonality
+    - Category-level seasonality
 
-- Demand volatility and stockout patterns
+    - Demand volatility and stockout patterns
 
-- Supplier lead-time variability
+    - Supplier lead-time variability
 
 4. Feature Engineering
 
-- Lagged and rolling demand features
+    - Lagged and rolling demand features
 
-- Price and promotion signals
+    - Price and promotion signals
 
-- Seasonality indicators
+    - Seasonality indicators
 
-- Supplier risk and lead-time features
+    - Supplier risk and lead-time features
 
 5. SKU Segmentation (ABC / XYZ)
 
-- ABC: Revenue importance
+    - ABC: Revenue importance
 
-- XYZ: Demand predictability
+    - XYZ: Demand predictability
 
-- Combined into actionable SKU segments (AX, BY, CZ, etc.)
+    - Combined into actionable SKU segments (AX, BY, CZ, etc.)
 
 6. Demand Forecasting
 
-- Weekly SKU-level forecasting
+    - Weekly SKU-level forecasting
 
-- Baseline (naive) vs lag-based regression models
+    - Baseline (naive) vs lag-based regression models
 
-- Time-aware train/test split
+    - Time-aware train/test split
 
-- Focus on forecast error and bias
+    - Focus on forecast error and bias
 
 7. Inventory Optimization
 
-- Safety stock using demand & lead-time uncertainty
+    - Safety stock using demand & lead-time uncertainty
 
-- Reorder point (ROP) calculation
+    - Reorder point (ROP) calculation
 
-- Segment-specific inventory buffers
+    - Segment-specific inventory buffers
 
 8. Scenario Simulation & Stress Testing
 
-- Demand surge (festive / promotions)
+    - Demand surge (festive / promotions)
 
-- Supplier delay scenarios
+    - Supplier delay scenarios
 
-- Service level impact analysis
+    - Service level impact analysis
+    
+---
 
 ## 📊 Key Results (Indicative)
 
@@ -189,6 +201,8 @@ NovaCart-Inventory-Optimization/
 - Clear trade-offs between service level and working capital
 
 `The final output is a SKU-level replenishment policy table that can be directly used by supply chain teams.`
+
+---
 
 ## 🧪 Testing & Continuous Integration (CI)
 
@@ -231,6 +245,8 @@ The CI configuration is defined in:
 .github/workflows/ci.yml
 ```
 
+---
+
 ## 🚀 Future Improvements
 
 - Multi-warehouse network optimization
@@ -240,6 +256,8 @@ The CI configuration is defined in:
 - Automated retraining pipelines
 
 - Interactive dashboard for planners
+
+---
 
 ## 📬 Final Note
 
