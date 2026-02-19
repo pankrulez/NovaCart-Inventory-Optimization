@@ -1,6 +1,6 @@
 # 📦 Inventory Optimization for NovaCart (Demand Forecasting Project)
 
-![CI](https://github.com/<your-username>/<repo-name>/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/pankrulez/NovaCart-Inventory-Optimization/actions/workflows/ci.yml/badge.svg)
 
 ## 📌 Project Overview
 
