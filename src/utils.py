@@ -1,8 +1,13 @@
 from typing import Tuple
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
-def load_raw_data(base_path="data/raw/"):
+BASE_PATH = Path(__file__).parent.parent
+DATA_PATH_RAW = BASE_PATH / "data" / "raw"
+DATA_PATH_PROCESSED = BASE_PATH / "data" / "processed"
+
+def load_raw_data(DATA_PATH = DATA_PATH_RAW) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load commonly used raw datasets across notebooks.
     
@@ -10,23 +15,21 @@ def load_raw_data(base_path="data/raw/"):
     -------
         sales_df, inventory_df, products_df, suppliers_df
     """
-    sales = pd.read_csv(f"{base_path}/sales.csv")
-    inventory = pd.read_csv(f"{base_path}/inventory.csv")
-    products = pd.read_csv(f"{base_path}/products.csv")
-    suppliers = pd.read_csv(f"{base_path}/suppliers.csv")
+    sales = pd.read_csv(f"{DATA_PATH}/sales_fact.csv")
+    inventory = pd.read_csv(f"{DATA_PATH}/inventory_snapshot.csv")
+    products = pd.read_csv(f"{DATA_PATH}/products_master.csv")
+    suppliers = pd.read_csv(f"{DATA_PATH}/suppliers_master.csv")
 
     return sales, inventory, products, suppliers
 
 
-def load_processed_data(
-    base_path: str = "data/processed/"
-) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def load_processed_data(DATA_PATH = DATA_PATH_PROCESSED) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load cleaned and processed datasets used across notebooks.
 
     Parameters
     ----------
-    base_path : str
+    DATA_PATH_PROCESSED : Path
         Base directory where processed CSV files are stored.
 
     Returns
@@ -34,10 +37,10 @@ def load_processed_data(
     Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]
         sales_df, inventory_df, products_df, suppliers_df
     """
-    sales = pd.read_csv(f"{base_path}/sales_clean.csv")
-    inventory = pd.read_csv(f"{base_path}/inventory_clean.csv")
-    products = pd.read_csv(f"{base_path}/products_clean.csv")
-    suppliers = pd.read_csv(f"{base_path}/suppliers_clean.csv")
+    sales = pd.read_csv(f"{DATA_PATH}/sales_clean.csv")
+    inventory = pd.read_csv(f"{DATA_PATH}/inventory_clean.csv")
+    products = pd.read_csv(f"{DATA_PATH}/products_clean.csv")
+    suppliers = pd.read_csv(f"{DATA_PATH}/suppliers_clean.csv")
 
     return sales, inventory, products, suppliers
 

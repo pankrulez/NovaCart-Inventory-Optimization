@@ -1,0 +1,217 @@
+/* ------------------ GLOBAL ------------------ */
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+    background-color: #0f1117;
+    color: #ffffff;
+}
+
+.block-container {
+    padding-top: 2.5rem;
+    padding-bottom: 3rem;
+}
+
+/* ------------------ GLASS CARD ------------------ */
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease-in-out;
+}
+
+.glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    margin-bottom: 1.5rem;
+}
+
+/* ------------------ DYNAMIC KPI ------------------ */
+
+.kpi-card {
+    border-radius: 18px;
+    padding: 24px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease-in-out;
+}
+
+.kpi-card:hover {
+    transform: translateY(-4px);
+    margin-bottom: 1.5rem;
+}
+
+/* Text colors */
+.kpi-green {
+    color: #22c55e;
+}
+
+.kpi-red {
+    color: #ef4444;
+}
+
+/* Gradient backgrounds */
+.bg-green {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.05));
+}
+
+.bg-red {
+    background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(185,28,28,0.05));
+}
+
+.bg-neutral {
+    background: linear-gradient(135deg, rgba(111,140,255,0.15), rgba(192,132,252,0.05));
+}
+
+.kpi-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+
+/* ------------------ SECTION TITLES ------------------ */
+
+.section-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1.2rem;
+    background: linear-gradient(90deg, #6f8cff, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ------------------ TABS ------------------ */
+
+button[data-baseweb="tab"] {
+    font-weight: 500;
+}
+
+/* ------------------ EXPANDER ------------------ */
+
+.streamlit-expanderHeader {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* ------------------ ANIMATION ------------------ */
+
+.fade-in {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ------------------ SIDEBAR GLASS EFFECT ------------------ */
+
+section[data-testid="stSidebar"] {
+    background: rgba(18, 20, 30, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 4px 0 25px rgba(111, 140, 255, 0.15);
+}
+
+/* Sidebar title styling */
+section[data-testid="stSidebar"] h1 {
+    background: linear-gradient(90deg, #6f8cff, #c084fc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Sidebar radio buttons */
+section[data-testid="stSidebar"] label {
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effect */
+section[data-testid="stSidebar"] label:hover {
+    color: #9da3ff;
+    transform: translateX(4px);
+}
+
+/* Active selection glow */
+section[data-testid="stSidebar"] input[type="radio"]:checked + div {
+    background: rgba(111, 140, 255, 0.15);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+/* Subtle left accent line */
+section[data-testid="stSidebar"] {
+    border-right: 2px solid rgba(111, 140, 255, 0.2);
+}
+
+/* Problem Card */
+.bg-orange {
+    background: linear-gradient(135deg, rgba(255,165,0,0.18), rgba(255,140,0,0.08));
+    border: 1px solid rgba(255,165,0,0.4);
+}
+
+/* Solution Card */
+.bg-solution-green {
+    background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(16,185,129,0.08));
+    border: 1px solid rgba(34,197,94,0.4);
+}
+
+/* ------------------ PIPELINE STAGE COLORS ------------------ */
+
+.bg-stage-1 { background: linear-gradient(135deg, rgba(255,165,0,0.18), rgba(255,140,0,0.08)); }
+.bg-stage-2 { background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(37,99,235,0.08)); }
+.bg-stage-3 { background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(139,92,246,0.08)); }
+.bg-stage-4 { background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(219,39,119,0.08)); }
+.bg-stage-5 { background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(16,185,129,0.08)); }
+.bg-stage-6 { background: linear-gradient(135deg, rgba(234,179,8,0.18), rgba(202,138,4,0.08)); }
+.bg-stage-7 { background: linear-gradient(135deg, rgba(14,165,233,0.18), rgba(2,132,199,0.08)); }
+.bg-stage-8 { background: linear-gradient(135deg, rgba(244,63,94,0.18), rgba(225,29,72,0.08)); }
+
+/* Bigger Step Headings */
+.pipeline-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Step Reveal Animation */
+.fade-step {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInStep 0.6s ease forwards;
+}
+
+@keyframes fadeInStep {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Increase spacing between columns */
+div[data-testid="column"] > div {
+    padding-right: 10px;
+    padding-left: 10px;
+}
