@@ -83,18 +83,13 @@ def clip_negative_values(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     return df
 
 
-def safe_divide(numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
-    """
-    Perform element-wise division while avoiding division by zero.
+def safe_divide(numerator, denominator):
+    numerator = np.asarray(numerator)
+    denominator = np.asarray(denominator)
 
-    Parameters
-    ----------
-    numerator : np.ndarray
-    denominator : np.ndarray
+    result = np.zeros_like(numerator, dtype=float)
 
-    Returns
-    -------
-    np.ndarray
-        Result of safe division.
-    """
-    return np.where(denominator == 0, 0, numerator / denominator)
+    non_zero_mask = denominator != 0
+    result[non_zero_mask] = numerator[non_zero_mask] / denominator[non_zero_mask]
+
+    return result

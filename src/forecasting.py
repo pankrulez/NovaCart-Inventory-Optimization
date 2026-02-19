@@ -2,7 +2,7 @@ from typing import Tuple, Iterable
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error
+from sklearn.metrics import mean_absolute_percentage_error, root_mean_squared_error
 
 
 def train_test_split_time(
@@ -148,5 +148,5 @@ def evaluate_forecast(
     """
     return {
         "MAPE": mean_absolute_percentage_error(y_true, y_pred),
-        "RMSE": mean_squared_error(y_true, y_pred, squared=False),
+        "RMSE": root_mean_squared_error(y_true, y_pred),
     }
