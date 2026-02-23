@@ -1,66 +1,56 @@
 # 📦 Inventory Optimization for NovaCart (Demand Forecasting Project)
+*Demand Forecasting + Inventory Replenishment Framework*
 
 ![CI](https://github.com/pankrulez/NovaCart-Inventory-Optimization/actions/workflows/ci.yml/badge.svg)
 
 ## 📌 Project Overview
 
-NovaCart Online Retail Pvt. Ltd. operates a large pan-India e-commerce fulfilment network.
-This project focuses on improving inventory planning at the **East Zone Fulfilment Centre (EZFC)**, where the company has recently faced:
+NovaCart operates a large pan-India e-commerce fulfillment network.
+This project improves inventory planning at the **East Zone Fulfilment Centre (EZFC)**, addressing:
 
-- High stockouts for fast-moving SKUs
+- Stockouts of fast-moving SKUs
 
-- Excess inventory for slow-moving products
+- Excess inventory for slow-moving SKUs
 
-- Inconsistent demand forecasts across categories
+- Forecast inconsistency across categories
 
-- High variability in supplier lead times
+- Supplier lead-time variability
 
-The goal of this project is not just to forecast demand, but to convert forecasts into operational inventory decisions such as reorder points and safety stock.
-
----
-
-## 🎯 Business Objectives
-
-The project aims to support NovaCart’s supply chain teams by building a data-driven, operations-ready inventory replenishment framework that can:
-
-- Forecast weekly SKU-level demand
-
-- Identify volatile and unpredictable SKUs
-
-- Reduce stockouts while protecting service levels
-
-- Minimize excess inventory and working capital lock-in
-
-- Recommend clear replenishment rules usable by warehouse teams
+The objective is to convert demand forecasts into **operational inventory decisions** (Safety Stock & Reorder Points).
 
 ---
 
-### 🎯 Target Business Outcomes
+## 🎯 Business Goals
 
-- Service Level: ≥ 96%
+- Weekly SKU-level demand forecasting
 
-- Stockout Rate: ≤ 2%
+- SKU volatility identification (ABC/XYZ)
 
-- Excess Inventory Reduction: ≥ 15%
+- Service Level ≥ 96%
+
+- Stockout Rate ≤ 2%
+
+- ≥ 15% reduction in excess inventory
+
+- Clear replenishment rules usable by warehouse teams
 
 ---
 
-## 🧠 How This Project Is Different
+## 🔁 End-to-End Framework
 
-Most demand forecasting projects stop at model accuracy.
-This project goes end-to-end:
+Unlike typical forecasting projects, this is operations-driven:
 
 `Demand → Forecast Error → Safety Stock → Reorder Point → Stress Testing`
 
-Key differentiators:
+Key elements:
 
-- SKU segmentation (ABC/XYZ) before modeling
+- ABC/XYZ SKU segmentation
 
-- Forecasts evaluated from an inventory risk perspective, not accuracy alone
+- Forecast evaluation from an inventory-risk perspective
 
-- Explicit handling of supplier lead-time uncertainty
+- Explicit modeling of supplier lead-time uncertainty
 
-- Scenario simulation for real-world disruptions
+- Scenario simulation for demand and supplier shocks
 
 ---
 
@@ -68,23 +58,13 @@ Key differentiators:
 
 The project uses four datasets:
 
-- Sales Fact – Historical customer demand
+- **Sales Fact** – Historical customer demand
 
-- Inventory Snapshot – Warehouse stock positions
+- **Inventory Snapshot** – Warehouse stock positions
 
-- Products Master – Category, pricing, and product attributes
+- **Products Master** – Category, pricing, and product attributes
 
-- Suppliers Master – Vendor lead times and reliability
-
-All datasets are validated for:
-
-- Key consistency
-
-- Missing values
-
-- Business rule violations
-
-- Date correctness
+- **Suppliers Master** – Vendor lead times and reliability
 
 ---
 
@@ -190,81 +170,45 @@ NovaCart-Inventory-Optimization/
     
 ---
 
-## 📊 Key Results (Indicative)
+## 📊 Key Outcomes
 
-- High-value SKUs protected with stable service levels
+- Service levels stabilized for high-value SKUs
 
-- Reduced stockout exposure for fast-moving products
+- Reduced stockout exposure on fast movers
 
-- Lower inventory buffers for long-tail SKUs
+- Leaner buffers for long-tail products
 
-- Clear trade-offs between service level and working capital
+- Clear service-level vs working-capital trade-offs
 
-`The final output is a SKU-level replenishment policy table that can be directly used by supply chain teams.`
+The final output is a SKU-level replenishment policy table ready for operational use.
 
 ---
 
 ## 🧪 Testing & Continuous Integration (CI)
 
-This project includes basic unit tests and automated CI checks to ensure that core logic remains correct and reproducible.
+- pytest unit tests for forecasting & inventory logic
 
-### Unit Tests
+- GitHub Actions CI on push & PR
 
-Key business and modeling logic is covered using pytest, including:
-
-- Data utility functions (safe arithmetic, data cleaning)
-
-- Time-aware demand forecasting helpers
-
-- Inventory optimization logic (safety stock & reorder point calculations)
-
-Tests are located in the `tests/` directory and focus on validating business-critical assumptions, not just code execution.
+- Validates safety stock, ROP formulas, and time-aware logic
 
 To run tests locally:
 ```
 pytest
 ```
-### Continuous Integration (CI)
-
-A GitHub Actions CI pipeline automatically runs all unit tests on:
-
-- Every push to the repository
-
-- Every pull request to main
-
-This ensures:
-
-- Inventory formulas remain consistent
-
-- Forecasting logic changes are validated
-
-- Regressions are caught early
-
-The CI configuration is defined in:
+CI config:
 ```
 .github/workflows/ci.yml
 ```
 
 ---
 
-## 🚀 Future Improvements
+## 🚀 Future Work
 
-- Multi-warehouse network optimization
+- Multi-warehouse optimization
 
-- Real-time demand signals
+- Real-time demand integration
 
-- Automated retraining pipelines
+- Automated retraining
 
-- Interactive dashboard for planners
-
----
-
-## 📬 Final Note
-
-This project was built to reflect how inventory problems are actually solved in practice, not just how models are trained.
-
-If you’re reviewing this as a recruiter or hiring manager:
-
-- Start with the Inventory Optimization and Scenario Simulation notebooks
-
-- Those show the most real-world thinking
+- Planner-facing dashboard
