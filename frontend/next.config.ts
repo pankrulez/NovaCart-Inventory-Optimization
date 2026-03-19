@@ -1,11 +1,8 @@
-const nextConfig = {
-  eslint: {
-    // This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   typescript: {
-    // Similarly, ignore type errors for now
+    // ignore type errors for now
     ignoreBuildErrors: true,
   },
 };
