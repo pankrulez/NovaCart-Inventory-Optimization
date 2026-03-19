@@ -14,10 +14,13 @@ from scipy.stats import norm
 from core.inventory import calculate_z_score, calculate_safety_stock, calculate_reorder_point
 
 app = FastAPI(title="NovaCart Inventory API")
+raw_origins = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+origins = [origin.strip() for origin in raw_origins.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
