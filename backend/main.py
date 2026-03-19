@@ -8,7 +8,7 @@ from typing import List
 
 app = FastAPI()
 
-# --- Dynamic CORS ---
+# --- Production CORS Management ---
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000").strip().rstrip('/')
 origins = ["http://localhost:3000", "http://127.0.0.1:3000", frontend_url]
 
@@ -27,42 +27,57 @@ class SimInputs(BaseModel):
     lead_time_std: float
     service_level: float
 
-# --- Tab 2: Live Optimizer Logic ---
-def get_sensitivity(inputs: SimInputs):
-    levels = [0.80, 0.90, 0.95, 0.98, 0.99]
-    std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
-    return [{"sl": f"{int(l*100)}%", "ss": round(norm.ppf(l)*std, 1), "cost": round(norm.ppf(l)*std*25, 0)} for l in levels]
-
+# --- REAL MODEL LOGIC ---
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
+    # 1. Calculate Combined Standard Deviation (Demand + Lead Time Uncertainty)
+    # Formula: σ_total = sqrt( L * σ_d² + D² * σ_l² )
     avg_ltd = inputs.avg_demand * inputs.avg_lead_time
-    std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
-    ss = norm.ppf(inputs.service_level) * std
+    combined_std = np.sqrt(
+        inputs.avg_lead_time * (inputs.demand_std**2) + 
+        (inputs.avg_demand**2) * (inputs.lead_time_std**2)
+    )
     
-    x = np.linspace(avg_ltd - (4*std), avg_ltd + (4*std), 80)
-    y = norm.pdf(x, avg_ltd, std)
+    # 2. Calculate Safety Stock & ROP
+    z_score = norm.ppf(inputs.service_level)
+    safety_stock = z_score * combined_std
+    reorder_point = avg_ltd + safety_stock
     
+    # 3. Generate Real Probability Density Curve for the Chart
+    x = np.linspace(avg_ltd - (4 * combined_std), avg_ltd + (4 * combined_std), 100)
+    y = norm.pdf(x, avg_ltd, combined_std)
+    chart_points = [{"x": float(xi), "y": float(yi)} for xi, yi in zip(x, y)]
+
+    # 4. Generate Real Sensitivity Analysis
+    levels = [0.80, 0.85, 0.90, 0.95, 0.98, 0.99]
+    sensitivity = []
+    for sl in levels:
+        z = norm.ppf(sl)
+        ss = z * combined_std
+        sensitivity.append({
+            "sl": f"{int(sl*100)}%",
+            "ss": round(ss, 1),
+            "cost": round(float(ss * 25), 0) # Real logic: Safety Stock * Holding Cost
+        })
+
     return {
-        "metrics": {"ss": round(ss, 2), "rop": round(avg_ltd + ss, 2), "risk": round((1-inputs.service_level)*100, 2)},
-        "chart": [{"x": float(xi), "y": float(yi)} for xi, yi in zip(x, y)],
-        "sensitivity": get_sensitivity(inputs)
+        "metrics": {
+            "ss": round(float(safety_stock), 2),
+            "rop": round(float(reorder_point), 2),
+            "risk": round((1 - inputs.service_level) * 100, 2),
+            "z_score": round(float(z_score), 3)
+        },
+        "chart": chart_points,
+        "sensitivity": sensitivity
     }
 
-# --- Tab 3: File Upload Placeholder ---
-@app.post("/api/upload-inventory")
-async def upload_inventory(file: UploadFile = File(...)):
-    # In a real app, use pandas.read_csv(file.file)
-    return {"message": f"Successfully processed {file.filename}", "skus_analyzed": 142, "health_score": "88%"}
-
-# --- Tab 4: Pipeline Stages ---
 @app.get("/api/pipeline")
 async def get_pipeline():
     return [
-        {"step": "Data Ingestion", "desc": "Connects to ERP/SQL for raw transactional data.", "status": "Completed"},
-        {"step": "Stochastic Modeling", "desc": "Calculates variance in demand & lead times.", "status": "Completed"},
-        {"step": "Optimization", "desc": "Determines ROP using Service Level targets.", "status": "Completed"},
-        {"step": "Visualization", "desc": "Renders React-based executive dashboards.", "status": "Completed"}
+        {"step": "Schema Validation", "desc": "Pydantic enforces strict float types for simulation inputs.", "status": "Active"},
+        {"step": "Stochastic Processing", "desc": "SciPy 'norm.ppf' calculates precise Z-Scores for service levels.", "status": "Active"},
+        {"step": "Cloud Sync", "desc": "RESTful JSON exchange between Render and Vercel environments.", "status": "Active"}
     ]
 
 @app.get("/")
-async def health(): return {"status": "online"}
+async def health(): return {"status": "NovaCart Engine Live"}
