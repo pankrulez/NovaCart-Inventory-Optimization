@@ -1,21 +1,46 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
-  BarChart, Bar, Legend 
+  Legend 
 } from 'recharts';
 import { 
   Activity, Package, ShieldCheck, AlertTriangle, RefreshCcw, 
-  LayoutDashboard, Database, TrendingUp, Settings 
+  Database, TrendingUp 
 } from 'lucide-react';
 
+// --- TYPES ---
+interface InventoryItem {
+  SKU?: string;
+  SKU_segment?: string;
+  avg_weekly_demand?: number;
+  avg_lead_time?: number;
+}
+
+interface ForecastItem {
+  name: string;
+  actual: number;
+  forecast: number;
+}
+
+interface SimMetrics {
+  safety_stock: number;
+  reorder_point: number;
+  estimated_service_level: number;
+  stockout_probability: number;
+}
+
+interface SimData {
+  metrics: SimMetrics;
+  chart_data: Array<{ x: number; y: number }>;
+}
+
 export default function NovaCartApp() {
-  // --- ALL HOOKS MUST STAY INSIDE THIS FUNCTION ---
   const [activeTab, setActiveTab] = useState('simulation');
   const [loading, setLoading] = useState(false);
-  const [simData, setSimData] = useState<any>(null);
-  const [inventoryData, setInventoryData] = useState<any[]>([]);
-  const [forecastData, setForecastData] = useState<any[]>([]);
+  const [simData, setSimData] = useState<SimData | null>(null);
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
+  const [forecastData, setForecastData] = useState<ForecastItem[]>([]);
   
   const [inputs, setInputs] = useState({
     avg_demand: 120,
@@ -27,7 +52,7 @@ export default function NovaCartApp() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-  // --- API FETCH FUNCTIONS ---
+  // --- API FETCH FUNCTIONS (Wrapped in useCallback to fix Linting) ---
   const handleSimulate = async () => {
     setLoading(true);
     try {
@@ -38,31 +63,38 @@ export default function NovaCartApp() {
       });
       const result = await res.json();
       setSimData(result);
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    } catch (e) { 
+      console.error("Simulation failed", e); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
-  const fetchInventory = async () => {
+  const fetchInventory = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/inventory-data`);
       const result = await res.json();
       setInventoryData(result);
-    } catch (e) { console.error(e); }
-  };
+    } catch (e) { 
+      console.error("Inventory fetch failed", e); 
+    }
+  }, [API_URL]);
 
-  const fetchForecast = async () => {
+  const fetchForecast = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/api/forecast-data`);
       const result = await res.json();
       setForecastData(result);
-    } catch (e) { console.error(e); }
-  };
+    } catch (e) { 
+      console.error("Forecast fetch failed", e); 
+    }
+  }, [API_URL]);
 
   useEffect(() => {
     if (activeTab === 'analytics') fetchInventory();
     if (activeTab === 'forecast') fetchForecast();
-  }, [activeTab]);
+  }, [activeTab, fetchInventory, fetchForecast]);
 
-  // --- RENDER LOGIC ---
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-slate-900 font-sans">
       {/* Sidebar */}
@@ -87,16 +119,16 @@ export default function NovaCartApp() {
             <header className="flex justify-between items-end">
               <div>
                 <h1 className="text-3xl font-black text-slate-900">Live Optimization</h1>
-                <p className="text-slate-500">Adjust parameters to simulate reorder points and risk.</p>
+                <p className="text-slate-500">Adjust parameters to simulate &quot;reorder points&quot; and risk.</p>
               </div>
-              <button onClick={handleSimulate} className="btn-primary flex items-center gap-2 px-6 py-3 shadow-xl shadow-indigo-100">
+              <button onClick={handleSimulate} className="bg-indigo-600 text-white rounded-xl flex items-center gap-2 px-6 py-3 font-bold shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
                 {loading ? <RefreshCcw className="animate-spin w-4 h-4" /> : <Activity className="w-4 h-4" />}
                 Run Optimization
               </button>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-4 glass-card p-6 rounded-2xl space-y-6">
+              <div className="lg:col-span-4 bg-white border border-slate-200 p-6 rounded-2xl space-y-6 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Parameters</h3>
                 {Object.keys(inputs).map((key) => (
                   <div key={key}>
@@ -118,7 +150,7 @@ export default function NovaCartApp() {
                   <StatCard title="Service Level" value={simData?.metrics.estimated_service_level} suffix="%" icon={<ShieldCheck className="text-green-500"/>} />
                   <StatCard title="Stockout Risk" value={simData?.metrics.stockout_probability} suffix="%" icon={<AlertTriangle className="text-amber-500"/>} />
                 </div>
-                <div className="glass-card p-8 rounded-2xl h-[400px]">
+                <div className="bg-white border border-slate-200 p-8 rounded-2xl h-[400px] shadow-sm">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={simData?.chart_data}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -137,7 +169,7 @@ export default function NovaCartApp() {
         {activeTab === 'analytics' && (
           <div className="max-w-6xl mx-auto space-y-6 animate-in slide-in-from-bottom-4 duration-500">
              <h1 className="text-3xl font-black text-slate-900">Inventory Analytics</h1>
-             <div className="glass-card rounded-2xl overflow-hidden shadow-sm">
+             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -169,7 +201,7 @@ export default function NovaCartApp() {
         {activeTab === 'forecast' && (
           <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
             <h1 className="text-3xl font-black text-slate-900">Demand Forecasting</h1>
-            <div className="glass-card p-8 rounded-2xl h-[450px]">
+            <div className="bg-white border border-slate-200 p-8 rounded-2xl h-[450px] shadow-sm">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={forecastData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -190,7 +222,7 @@ export default function NovaCartApp() {
 }
 
 // --- HELPER COMPONENTS ---
-function NavButton({ active, onClick, icon, label }: any) {
+function NavButton({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
   return (
     <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
       {icon} <span className="text-sm">{label}</span>
@@ -198,13 +230,13 @@ function NavButton({ active, onClick, icon, label }: any) {
   );
 }
 
-function StatCard({ title, value, icon, suffix = "" }: any) {
+function StatCard({ title, value, icon, suffix = "" }: { title: string, value?: number, icon: React.ReactNode, suffix?: string }) {
   return (
-    <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
+    <div className="bg-white border border-slate-200 p-5 rounded-2xl flex items-center gap-4 shadow-sm">
       <div className="p-3 bg-slate-50 rounded-xl">{icon}</div>
       <div>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{title}</p>
-        <p className="text-2xl font-black text-slate-800 tracking-tight">{value ?? "--"}{suffix}</p>
+        <p className="text-2xl font-black text-slate-800 tracking-tight">{value !== undefined ? value.toFixed(2) : "--"}{suffix}</p>
       </div>
     </div>
   );
