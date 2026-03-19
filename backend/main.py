@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import numpy as np
 from scipy.stats import norm
-from .core.inventory import calculate_z_score, calculate_safety_stock, calculate_reorder_point
+from core.inventory import calculate_z_score, calculate_safety_stock, calculate_reorder_point
 
 app = FastAPI(title="NovaCart Inventory API")
 
