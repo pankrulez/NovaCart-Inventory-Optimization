@@ -27,6 +27,10 @@ app.add_middleware(
 BASE_DIR = Path(__file__).resolve().parent
 DATA_PATH = BASE_DIR / "data" / "processed" / "feature_engineered_with_segments.csv"
 
+@app.get("/")
+async def root():
+    return {"status": "NovaCart API is Live", "version": "1.0.0"}
+
 @app.get("/api/inventory-data")
 async def get_inventory_data():
     try:
