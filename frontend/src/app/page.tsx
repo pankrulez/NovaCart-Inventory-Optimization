@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
   BarChart, Bar, Legend 
-} from 'recharts'; // Fixed: No stray { here
+} from 'recharts';
 import { 
   Activity, Package, ShieldCheck, AlertTriangle, RefreshCcw, 
   LayoutDashboard, Database, TrendingUp, Settings 
