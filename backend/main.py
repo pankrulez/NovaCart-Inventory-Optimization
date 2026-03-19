@@ -1,4 +1,3 @@
-import sys
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -14,16 +13,20 @@ from scipy.stats import norm
 from core.inventory import calculate_z_score, calculate_safety_stock, calculate_reorder_point
 
 app = FastAPI(title="NovaCart Inventory API")
-raw_origins = os.getenv("FRONTEND_URL", "http://localhost:3000")
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000").strip().rstrip('/')
 
-origins = [origin.strip() for origin in raw_origins.split(",")]
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    frontend_url
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+    allow_headers=["*"], # Allows 'Content-Type', 'Authorization', etc.
 )
 
 # Setup paths
@@ -32,7 +35,11 @@ DATA_PATH = BASE_DIR / "data" / "processed" / "feature_engineered_with_segments.
 
 @app.get("/")
 async def root():
-    return {"status": "NovaCart API is Live", "version": "1.0.0"}
+    # Helper to see if Render is actually seeing your Vercel URL
+    return {
+        "status": "NovaCart API is Live", 
+        "allowed_origin": frontend_url
+    }
 
 @app.get("/api/inventory-data")
 async def get_inventory_data():
