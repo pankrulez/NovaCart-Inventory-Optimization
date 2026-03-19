@@ -11,3 +11,4 @@ pydantic
 scipy
 joblib
 python-multipart
+dotenv

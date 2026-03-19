@@ -1,9 +1,9 @@
 import sys
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Add the current directory (backend/) to the Python path
-sys.path.append(str(Path(__file__).parent))
+load_dotenv()
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException
