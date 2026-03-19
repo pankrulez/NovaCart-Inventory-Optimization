@@ -1,232 +1,185 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, 
-  CartesianGrid, BarChart, Bar, Line, ComposedChart, Legend 
+  CartesianGrid, BarChart, Bar, Line, ComposedChart 
 } from 'recharts';
 import { 
-  Activity, Package, ShieldCheck, AlertTriangle, RefreshCcw, 
-  Database, TrendingUp, Layers, ArrowUpRight, ArrowDownRight, Github, ExternalLink
+  Activity, Package, ShieldCheck, AlertTriangle, RefreshCcw, Github, 
+  Linkedin, Layers, Database, Cpu, UploadCloud, FileSpreadsheet, ArrowRight, CheckCircle2
 } from 'lucide-react';
 
-export default function NovaCartShowcase() {
-  const [activeTab, setActiveTab] = useState('optimizer');
+export default function NovaCartPortfolio() {
+  const [activeTab, setActiveTab] = useState('home');
   const [loading, setLoading] = useState(false);
   const [simData, setSimData] = useState<any>(null);
-  const [inventoryData, setInventoryData] = useState<any[]>([]);
-  const [forecastData, setForecastData] = useState<any[]>([]);
-  
-  const [inputs, setInputs] = useState({
-    avg_demand: 160,
-    demand_std: 40,
-    avg_lead_time: 4,
-    lead_time_std: 1.2,
-    service_level: 0.95
-  });
+  const [pipeline, setPipeline] = useState<any[]>([]);
+  const [inputs, setInputs] = useState({ avg_demand: 160, demand_std: 40, avg_lead_time: 4, lead_time_std: 1.2, service_level: 0.95 });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
   const handleSimulate = async () => {
     setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/simulate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(inputs),
-      });
-      setSimData(await res.json());
-    } catch (e) { console.error(e); } finally { setLoading(false); }
+    const res = await fetch(`${API_URL}/api/simulate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inputs),
+    });
+    setSimData(await res.json());
+    setLoading(false);
   };
 
-  const fetchData = useCallback(async (endpoint: string, setter: Function) => {
-    try {
-      const res = await fetch(`${API_URL}/api/${endpoint}`);
-      setter(await res.json());
-    } catch (e) { console.error(e); }
-  }, [API_URL]);
-
   useEffect(() => {
-    if (activeTab === 'inventory') fetchData('inventory-data', setInventoryData);
-    if (activeTab === 'forecast') fetchData('forecast-data', setForecastData);
-  }, [activeTab, fetchData]);
+    if (activeTab === 'pipeline') fetch(`${API_URL}/api/pipeline`).then(r => r.json()).then(setPipeline);
+  }, [activeTab, API_URL]);
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans selection:bg-indigo-100">
-      {/* --- TOP NAVBAR --- */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-[#F9FAFB] text-slate-900 font-sans">
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-12 py-5 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="bg-indigo-600 p-1.5 rounded-lg shadow-lg shadow-indigo-200">
-            <Layers className="text-white w-5 h-5" />
-          </div>
-          <span className="text-xl font-black tracking-tighter text-slate-800">NovaCart<span className="text-indigo-600">.</span></span>
+          <Layers className="text-indigo-600 w-6 h-6" />
+          <span className="text-xl font-black tracking-tighter">NovaCart<span className="text-indigo-600">.</span></span>
         </div>
-        <div className="flex bg-slate-100 p-1 rounded-xl">
-          <TabBtn active={activeTab === 'optimizer'} onClick={() => setActiveTab('optimizer')} label="Live Optimizer" />
-          <TabBtn active={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} label="Inventory Health" />
-          <TabBtn active={activeTab === 'forecast'} onClick={() => setActiveTab('forecast')} label="Demand Forecast" />
-        </div>
-        <div className="flex items-center gap-4">
-          <a href="#" className="text-slate-400 hover:text-slate-600 transition-colors"><Github size={20}/></a>
-          <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all">
-            Documentation <ExternalLink size={14}/>
-          </button>
+        <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+          {['home', 'optimizer', 'data-lab', 'pipeline', 'about'].map((tab) => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>
+              {tab.replace('-', ' ')}
+            </button>
+          ))}
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <header className="max-w-6xl mx-auto pt-20 pb-12 px-6 text-center">
-        <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6 inline-block">
-          AI-Driven Supply Chain Management
-        </span>
-        <h1 className="text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
-          Quantifying Uncertainty in <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">Global Logistics.</span>
-        </h1>
-        <p className="max-w-2xl mx-auto text-lg text-slate-500 font-medium leading-relaxed">
-          NovaCart uses stochastic probability modeling to calculate dynamic safety stock levels, 
-          mitigating stockout risks while minimizing unnecessary capital expenditure.
-        </p>
-      </header>
-
-      {/* --- MAIN CONTENT --- */}
-      <main className="max-w-7xl mx-auto px-6 pb-20">
+      <main className="max-w-6xl mx-auto py-16 px-6">
         
-        {/* OPTIMIZER TAB */}
-        {activeTab === 'optimizer' && (
-          <div className="grid grid-cols-12 gap-8 animate-in fade-in duration-700">
-            <div className="col-span-12 lg:col-span-4 space-y-6">
-              <section className="bg-white border border-slate-100 p-8 rounded-[2rem] shadow-xl shadow-slate-200/40">
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Simulation Engine</h3>
-                <div className="space-y-5">
-                  {Object.keys(inputs).map((key) => (
-                    <div key={key}>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block tracking-wider">{key.replace(/_/g, ' ')}</label>
-                      <input type="number" step="0.1" value={(inputs as any)[key]} onChange={(e) => setInputs({...inputs, [key]: parseFloat(e.target.value)})}
-                      className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
-                    </div>
-                  ))}
-                  <button onClick={handleSimulate} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
-                    {loading ? <RefreshCcw className="animate-spin" /> : <Activity size={20}/>}
-                    Run Optimization
-                  </button>
-                </div>
-              </section>
-
-              {simData && (
-                <div className="grid grid-cols-2 gap-4">
-                  <SmallStat title="Safety Stock" val={simData.metrics.safety_stock} icon={<Package className="text-indigo-500"/>} />
-                  <SmallStat title="Reorder Point" val={simData.metrics.reorder_point} icon={<Activity className="text-blue-500"/>} />
-                </div>
-              )}
+        {/* --- 1. HOME TAB --- */}
+        {activeTab === 'home' && (
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="text-center mb-16">
+              <h1 className="text-7xl font-black tracking-tight mb-6">Inventory <span className="text-indigo-600">Intelligence.</span></h1>
+              <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">NovaCart is a full-stack data science solution designed to solve the "Safety Stock Paradox"—balancing capital liquidity with service reliability.</p>
             </div>
+            <div className="grid grid-cols-3 gap-8">
+              <FeatureCard icon={<Cpu className="text-indigo-500"/>} title="Stochastic Engine" desc="Uses probability density functions to model lead-time demand variability." />
+              <FeatureCard icon={<Database className="text-blue-500"/>} title="Data Pipelines" desc="Structured ETL processes converting raw CSV/ERP data into optimized insights." />
+              <FeatureCard icon={<ShieldCheck className="text-emerald-500"/>} title="Risk Mitigation" desc="Dynamically calculates ROP to ensure 95%+ service levels." />
+            </div>
+          </div>
+        )}
 
-            <div className="col-span-12 lg:col-span-8 space-y-8">
-              <div className="bg-white border border-slate-100 p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/40 h-[450px]">
-                <h4 className="font-bold text-slate-800 mb-8 text-xl tracking-tight">Lead Time Demand Density</h4>
+        {/* --- 2. LIVE OPTIMIZER --- */}
+        {activeTab === 'optimizer' && (
+          <div className="grid grid-cols-12 gap-8 animate-in fade-in duration-500">
+            <div className="col-span-4 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm h-fit">
+              <h3 className="font-black text-xs uppercase tracking-[0.2em] text-slate-400 mb-8">Simulation Control</h3>
+              <div className="space-y-6">
+                {Object.keys(inputs).map((key) => (
+                  <div key={key}>
+                    <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest">{key.replace(/_/g, ' ')}</label>
+                    <input type="number" step="0.1" value={(inputs as any)[key]} onChange={(e) => setInputs({...inputs, [key]: parseFloat(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                  </div>
+                ))}
+                <button onClick={handleSimulate} className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
+                  {loading ? <RefreshCcw className="animate-spin" /> : <Activity size={20}/>} RUN ANALYSIS
+                </button>
+              </div>
+            </div>
+            <div className="col-span-8 space-y-8">
+              <div className="bg-white p-10 rounded-[2rem] border border-slate-200 shadow-sm h-[400px]">
+                <h4 className="font-bold text-slate-800 mb-6">Probability Distribution</h4>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={simData?.chart_data || []}>
-                    <defs>
-                      <linearGradient id="colorY" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+                  <AreaChart data={simData?.chart || []}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                     <XAxis dataKey="x" hide />
                     <YAxis hide />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                    <Area type="monotone" dataKey="y" stroke="#6366f1" fill="url(#colorY)" strokeWidth={4} />
-                    {simData && <ReferenceLine x={simData.metrics.reorder_point} stroke="#F43F5E" strokeDasharray="10 10" strokeWidth={3} label={{ value: 'ROP', position: 'top', fill: '#F43F5E', fontSize: 12, fontWeight: '900' }} />}
+                    <Tooltip />
+                    <Area type="monotone" dataKey="y" stroke="#6366f1" fill="#6366f1" fillOpacity={0.05} strokeWidth={4} />
+                    {simData && <ReferenceLine x={simData.metrics.rop} stroke="#F43F5E" strokeDasharray="8 8" strokeWidth={2} label={{ value: 'ROP', position: 'top', fill: '#F43F5E', fontSize: 10, fontWeight: '900' }} />}
                   </AreaChart>
                 </ResponsiveContainer>
-              </div>
-
-              <div className="bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl text-white">
-                <h4 className="font-bold text-slate-200 mb-8 text-xl tracking-tight">Economic Trade-off Curve</h4>
-                <div className="h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={simData?.sensitivity || []}>
-                      <XAxis dataKey="sl" stroke="#475569" fontSize={10} />
-                      <Tooltip contentStyle={{ color: '#000' }} />
-                      <Bar dataKey="ss" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
-                      <Line type="monotone" dataKey="cost" stroke="#10B981" strokeWidth={3} dot={{ r: 4, fill: '#10B981' }} />
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* INVENTORY TAB */}
-        {activeTab === 'inventory' && (
-          <div className="animate-in slide-in-from-bottom-6 duration-700 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-slate-50/50">
-                <tr>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">SKU Identifier</th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">ABC Class</th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Demand/Wk</th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Lead Time</th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">System Health</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {inventoryData.map((item, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-10 py-8 font-black text-indigo-600 font-mono tracking-tighter">{item.sku}</td>
-                    <td className="px-10 py-8 font-bold text-slate-700">Segment {item.segment}</td>
-                    <td className="px-10 py-8 font-bold text-slate-700">{item.demand} u</td>
-                    <td className="px-10 py-8 font-bold text-slate-700">{item.lead} Weeks</td>
-                    <td className="px-10 py-8">
-                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.status === 'Healthy' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* --- 3. DATA LAB (UPLOAD) --- */}
+        {activeTab === 'data-lab' && (
+          <div className="max-w-3xl mx-auto animate-in zoom-in-95 duration-500">
+            <div className="bg-white border-2 border-dashed border-slate-300 rounded-[3rem] p-20 text-center hover:border-indigo-400 transition-all group cursor-pointer">
+              <div className="bg-indigo-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform">
+                <UploadCloud className="text-indigo-600 w-10 h-10" />
+              </div>
+              <h2 className="text-3xl font-black mb-4">Upload Inventory Data</h2>
+              <p className="text-slate-500 font-medium mb-10 text-lg">Drag and drop your .csv or .xlsx file here to perform a batch stochastic analysis.</p>
+              <div className="flex justify-center gap-4">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200"><FileSpreadsheet size={16}/> CSV</span>
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200"><Database size={16}/> XLSX</span>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* FORECAST TAB */}
-        {activeTab === 'forecast' && (
-          <div className="animate-in fade-in duration-700 bg-white border border-slate-100 p-12 rounded-[2.5rem] shadow-xl h-[600px]">
-             <h4 className="font-black text-slate-800 mb-10 text-2xl tracking-tighter">Predictive Demand Intelligence</h4>
-             <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={forecastData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="actual" stroke="#94A3B8" fill="#F8FAFC" strokeWidth={2} name="Observed Sales" />
-                  <Area type="monotone" dataKey="forecast" stroke="#6366f1" fill="#EEF2FF" strokeWidth={5} name="AI-Projected Forecast" />
-                </AreaChart>
-             </ResponsiveContainer>
+        {/* --- 4. PIPELINE TAB --- */}
+        {activeTab === 'pipeline' && (
+          <div className="max-w-4xl mx-auto animate-in slide-in-from-left-8 duration-700">
+            <h2 className="text-4xl font-black mb-12 text-center">Architectural Pipeline</h2>
+            <div className="relative border-l-2 border-indigo-100 ml-6 space-y-12">
+              {pipeline.map((p, i) => (
+                <div key={i} className="relative pl-12 group">
+                  <div className="absolute -left-[11px] top-0 w-5 h-5 bg-white border-4 border-indigo-600 rounded-full group-hover:scale-125 transition-transform shadow-sm"></div>
+                  <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-xl font-bold text-slate-800">{p.step}</h4>
+                      <span className="bg-emerald-50 text-emerald-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">{p.status}</span>
+                    </div>
+                    <p className="text-slate-500 font-medium">{p.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* --- 5. ABOUT ME --- */}
+        {activeTab === 'about' && (
+          <div className="max-w-2xl mx-auto text-center animate-in fade-in duration-700">
+            <div className="w-32 h-32 bg-indigo-600 rounded-full mx-auto mb-8 flex items-center justify-center text-white text-5xl font-black">P</div>
+            <h2 className="text-4xl font-black mb-2">Punk</h2>
+            <p className="text-slate-500 font-medium mb-10 italic">Data Scientist | Supply Chain Enthusiast</p>
+            <div className="flex justify-center gap-6">
+              <SocialLink href="https://linkedin.com" icon={<Linkedin size={20}/>} label="LinkedIn" />
+              <SocialLink href="https://github.com" icon={<Github size={20}/>} label="GitHub" />
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
 }
 
 // --- Internal Components ---
+function FeatureCard({ icon, title, desc }: any) {
+  return (
+    <div className="bg-white p-10 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500">
+      <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8">{icon}</div>
+      <h4 className="text-2xl font-black mb-4 tracking-tight">{title}</h4>
+      <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function SocialLink({ href, icon, label }: any) {
+  return (
+    <a href={href} target="_blank" className="flex items-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-700 hover:bg-slate-50 hover:border-indigo-300 transition-all shadow-sm">
+      {icon} {label}
+    </a>
+  );
+}
+
 function TabBtn({ active, onClick, label }: any) {
   return (
     <button onClick={onClick} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
       {label}
     </button>
-  );
-}
-
-function SmallStat({ title, val, icon }: any) {
-  return (
-    <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-lg shadow-slate-200/30 flex items-center gap-4">
-      <div className="p-3 bg-slate-50 rounded-2xl">{icon}</div>
-      <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{title}</p>
-        <p className="text-xl font-black text-slate-900 tracking-tighter">{val || '--'}</p>
-      </div>
-    </div>
   );
 }
