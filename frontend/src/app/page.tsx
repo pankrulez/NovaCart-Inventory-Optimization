@@ -6,27 +6,26 @@ import {
 } from 'recharts';
 import { 
   Activity, Package, ShieldCheck, AlertTriangle, RefreshCcw, 
-  Database, TrendingUp, Layers, ArrowUpRight, ArrowDownRight, Download
+  Database, TrendingUp, Layers, ArrowUpRight, ArrowDownRight, Github, ExternalLink
 } from 'lucide-react';
 
-export default function NovaCartFullRestored() {
-  const [activeTab, setActiveTab] = useState('simulation');
+export default function NovaCartShowcase() {
+  const [activeTab, setActiveTab] = useState('optimizer');
   const [loading, setLoading] = useState(false);
   const [simData, setSimData] = useState<any>(null);
   const [inventoryData, setInventoryData] = useState<any[]>([]);
   const [forecastData, setForecastData] = useState<any[]>([]);
   
   const [inputs, setInputs] = useState({
-    avg_demand: 150,
-    demand_std: 35,
+    avg_demand: 160,
+    demand_std: 40,
     avg_lead_time: 4,
     lead_time_std: 1.2,
-    service_level: 0.98
+    service_level: 0.95
   });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-  // --- API Handlers ---
   const handleSimulate = async () => {
     setLoading(true);
     try {
@@ -35,175 +34,175 @@ export default function NovaCartFullRestored() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(inputs),
       });
-      const result = await res.json();
-      setSimData(result);
+      setSimData(await res.json());
     } catch (e) { console.error(e); } finally { setLoading(false); }
   };
 
   const fetchData = useCallback(async (endpoint: string, setter: Function) => {
     try {
       const res = await fetch(`${API_URL}/api/${endpoint}`);
-      const data = await res.json();
-      setter(data);
+      setter(await res.json());
     } catch (e) { console.error(e); }
   }, [API_URL]);
 
   useEffect(() => {
-    if (activeTab === 'analytics') fetchData('inventory-data', setInventoryData);
+    if (activeTab === 'inventory') fetchData('inventory-data', setInventoryData);
     if (activeTab === 'forecast') fetchData('forecast-data', setForecastData);
   }, [activeTab, fetchData]);
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
-      {/* Professional Sidebar */}
-      <aside className="w-72 bg-slate-900 text-white p-8 flex flex-col shadow-2xl sticky top-0 h-screen">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/30">
-            <Layers className="text-white w-6 h-6" />
+    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans selection:bg-indigo-100">
+      {/* --- TOP NAVBAR --- */}
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="bg-indigo-600 p-1.5 rounded-lg shadow-lg shadow-indigo-200">
+            <Layers className="text-white w-5 h-5" />
           </div>
-          <h2 className="text-xl font-black tracking-tight">NOVACART</h2>
+          <span className="text-xl font-black tracking-tighter text-slate-800">NovaCart<span className="text-indigo-600">.</span></span>
         </div>
-        
-        <nav className="space-y-2 flex-1">
-          <NavBtn active={activeTab === 'simulation'} onClick={() => setActiveTab('simulation')} icon={<Activity size={18}/>} label="Risk Optimizer" />
-          <NavBtn active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} icon={<Database size={18}/>} label="Inventory Data" />
-          <NavBtn active={activeTab === 'forecast'} onClick={() => setActiveTab('forecast')} icon={<TrendingUp size={18}/>} label="Demand Forecast" />
-        </nav>
-
-        <div className="mt-auto p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-[10px] font-bold text-slate-200">ENGINE ACTIVE</span>
-          </div>
-          <p className="text-[10px] text-slate-400 truncate">{API_URL}</p>
+        <div className="flex bg-slate-100 p-1 rounded-xl">
+          <TabBtn active={activeTab === 'optimizer'} onClick={() => setActiveTab('optimizer')} label="Live Optimizer" />
+          <TabBtn active={activeTab === 'inventory'} onClick={() => setActiveTab('inventory')} label="Inventory Health" />
+          <TabBtn active={activeTab === 'forecast'} onClick={() => setActiveTab('forecast')} label="Demand Forecast" />
         </div>
-      </aside>
+        <div className="flex items-center gap-4">
+          <a href="#" className="text-slate-400 hover:text-slate-600 transition-colors"><Github size={20}/></a>
+          <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-800 transition-all">
+            Documentation <ExternalLink size={14}/>
+          </button>
+        </div>
+      </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-10 overflow-y-auto">
+      {/* --- HERO SECTION --- */}
+      <header className="max-w-6xl mx-auto pt-20 pb-12 px-6 text-center">
+        <span className="bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6 inline-block">
+          AI-Driven Supply Chain Management
+        </span>
+        <h1 className="text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
+          Quantifying Uncertainty in <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500">Global Logistics.</span>
+        </h1>
+        <p className="max-w-2xl mx-auto text-lg text-slate-500 font-medium leading-relaxed">
+          NovaCart uses stochastic probability modeling to calculate dynamic safety stock levels, 
+          mitigating stockout risks while minimizing unnecessary capital expenditure.
+        </p>
+      </header>
+
+      {/* --- MAIN CONTENT --- */}
+      <main className="max-w-7xl mx-auto px-6 pb-20">
         
-        {/* TAB 1: SIMULATION */}
-        {activeTab === 'simulation' && (
-          <div className="space-y-8 animate-in fade-in duration-700">
-            <header className="flex justify-between items-end mb-10">
-              <div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tight">Risk & Strategy</h1>
-                <p className="text-slate-500">Stochastic lead-time demand simulation engine.</p>
-              </div>
-              <button onClick={handleSimulate} className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all">
-                {loading ? <RefreshCcw className="animate-spin" /> : <Activity size={18} />} Run Engine
-              </button>
-            </header>
-
-            <div className="grid grid-cols-4 gap-6">
-              <StatCard title="Safety Stock" val={simData?.metrics.safety_stock} icon={<Package className="text-indigo-500"/>} trend="+2.4%" up={false} />
-              <StatCard title="Reorder Point" val={simData?.metrics.reorder_point} icon={<Activity className="text-blue-500"/>} trend="+0.8%" up={true} />
-              <StatCard title="Service Level" val={simData?.metrics.estimated_service_level} suffix="%" icon={<ShieldCheck className="text-emerald-500"/>} trend="Target" up={true} />
-              <StatCard title="Stockout Risk" val={simData?.metrics.stockout_probability} suffix="%" icon={<AlertTriangle className="text-rose-500"/>} trend="-1.2%" up={true} />
-            </div>
-
-            <div className="grid grid-cols-12 gap-8">
-              <div className="col-span-3 bg-white border border-slate-200 p-8 rounded-[2rem] shadow-sm space-y-6">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Model Params</h3>
-                {Object.keys(inputs).map((key) => (
-                  <div key={key}>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-2">{key.replace(/_/g, ' ')}</label>
-                    <input type="number" step="0.1" value={(inputs as any)[key]} onChange={(e) => setInputs({...inputs, [key]: parseFloat(e.target.value)})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="col-span-9 space-y-8">
-                <div className="bg-white border border-slate-200 p-8 rounded-[2rem] shadow-sm h-[380px]">
-                   <h4 className="font-bold text-slate-800 mb-6 flex justify-between">Probability Density <span className="text-[10px] text-slate-400">Normal Dist.</span></h4>
-                   <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={simData?.chart_data || []}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="x" hide />
-                        <YAxis hide />
-                        <Tooltip />
-                        <Area type="monotone" dataKey="y" stroke="#6366f1" fill="#6366f1" fillOpacity={0.05} strokeWidth={4} />
-                        {simData && <ReferenceLine x={simData.metrics.reorder_point} stroke="#F43F5E" strokeDasharray="8 8" strokeWidth={2} />}
-                      </AreaChart>
-                   </ResponsiveContainer>
-                </div>
-
-                <div className="bg-white border border-slate-200 p-8 rounded-[2rem] shadow-sm">
-                   <h4 className="font-bold text-slate-800 mb-6">Economic Sensitivity (Inventory Investment vs Service)</h4>
-                   <div className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={simData?.sensitivity || []}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="service_level" />
-                          <YAxis yAxisId="left" hide />
-                          <YAxis yAxisId="right" orientation="right" hide />
-                          <Tooltip />
-                          <Bar yAxisId="left" dataKey="safety_stock" fill="#6366f1" radius={[6, 6, 0, 0]} barSize={45} />
-                          <Line yAxisId="right" type="monotone" dataKey="carrying_cost" stroke="#10B981" strokeWidth={4} dot={{ r: 6, fill: '#10B981' }} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: INVENTORY ANALYTICS */}
-        {activeTab === 'analytics' && (
-          <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Inventory Health</h1>
-            <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="p-6 text-xs font-black text-slate-400 uppercase">SKU ID</th>
-                    <th className="p-6 text-xs font-black text-slate-400 uppercase">Classification</th>
-                    <th className="p-6 text-xs font-black text-slate-400 uppercase">Avg Demand</th>
-                    <th className="p-6 text-xs font-black text-slate-400 uppercase">Lead Time</th>
-                    <th className="p-6 text-xs font-black text-slate-400 uppercase">Optimization Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {inventoryData.map((row, i) => (
-                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-6 font-bold text-indigo-600 font-mono text-sm">{row.SKU}</td>
-                      <td className="p-6">
-                        <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black">{row.SKU_segment}</span>
-                      </td>
-                      <td className="p-6 text-sm font-bold text-slate-700">{row.avg_weekly_demand} units</td>
-                      <td className="p-6 text-sm font-bold text-slate-700">{row.avg_lead_time} Weeks</td>
-                      <td className="p-6">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black ${row.status === 'Optimized' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                          {row.status}
-                        </span>
-                      </td>
-                    </tr>
+        {/* OPTIMIZER TAB */}
+        {activeTab === 'optimizer' && (
+          <div className="grid grid-cols-12 gap-8 animate-in fade-in duration-700">
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+              <section className="bg-white border border-slate-100 p-8 rounded-[2rem] shadow-xl shadow-slate-200/40">
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Simulation Engine</h3>
+                <div className="space-y-5">
+                  {Object.keys(inputs).map((key) => (
+                    <div key={key}>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block tracking-wider">{key.replace(/_/g, ' ')}</label>
+                      <input type="number" step="0.1" value={(inputs as any)[key]} onChange={(e) => setInputs({...inputs, [key]: parseFloat(e.target.value)})}
+                      className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                  <button onClick={handleSimulate} className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-3">
+                    {loading ? <RefreshCcw className="animate-spin" /> : <Activity size={20}/>}
+                    Run Optimization
+                  </button>
+                </div>
+              </section>
 
-        {/* TAB 3: FORECASTING */}
-        {activeTab === 'forecast' && (
-          <div className="space-y-8 animate-in fade-in duration-500">
-             <h1 className="text-4xl font-black text-slate-900 tracking-tight">Demand Forecast</h1>
-             <div className="bg-white border border-slate-200 p-10 rounded-[2rem] shadow-sm h-[500px]">
+              {simData && (
+                <div className="grid grid-cols-2 gap-4">
+                  <SmallStat title="Safety Stock" val={simData.metrics.safety_stock} icon={<Package className="text-indigo-500"/>} />
+                  <SmallStat title="Reorder Point" val={simData.metrics.reorder_point} icon={<Activity className="text-blue-500"/>} />
+                </div>
+              )}
+            </div>
+
+            <div className="col-span-12 lg:col-span-8 space-y-8">
+              <div className="bg-white border border-slate-100 p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/40 h-[450px]">
+                <h4 className="font-bold text-slate-800 mb-8 text-xl tracking-tight">Lead Time Demand Density</h4>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={forecastData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend verticalAlign="top" height={36}/>
-                    <Area type="monotone" dataKey="actual" stroke="#94A3B8" fill="#F1F5F9" name="Actual Sales" strokeWidth={2} />
-                    <Area type="monotone" dataKey="forecast" stroke="#6366f1" fill="#EEF2FF" name="AI Prediction" strokeWidth={4} />
+                  <AreaChart data={simData?.chart_data || []}>
+                    <defs>
+                      <linearGradient id="colorY" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                    <XAxis dataKey="x" hide />
+                    <YAxis hide />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                    <Area type="monotone" dataKey="y" stroke="#6366f1" fill="url(#colorY)" strokeWidth={4} />
+                    {simData && <ReferenceLine x={simData.metrics.reorder_point} stroke="#F43F5E" strokeDasharray="10 10" strokeWidth={3} label={{ value: 'ROP', position: 'top', fill: '#F43F5E', fontSize: 12, fontWeight: '900' }} />}
                   </AreaChart>
                 </ResponsiveContainer>
-             </div>
+              </div>
+
+              <div className="bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl text-white">
+                <h4 className="font-bold text-slate-200 mb-8 text-xl tracking-tight">Economic Trade-off Curve</h4>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={simData?.sensitivity || []}>
+                      <XAxis dataKey="sl" stroke="#475569" fontSize={10} />
+                      <Tooltip contentStyle={{ color: '#000' }} />
+                      <Bar dataKey="ss" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={40} />
+                      <Line type="monotone" dataKey="cost" stroke="#10B981" strokeWidth={3} dot={{ r: 4, fill: '#10B981' }} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* INVENTORY TAB */}
+        {activeTab === 'inventory' && (
+          <div className="animate-in slide-in-from-bottom-6 duration-700 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl overflow-hidden">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50/50">
+                <tr>
+                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">SKU Identifier</th>
+                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">ABC Class</th>
+                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Demand/Wk</th>
+                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">Lead Time</th>
+                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-widest">System Health</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {inventoryData.map((item, i) => (
+                  <tr key={i} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-10 py-8 font-black text-indigo-600 font-mono tracking-tighter">{item.sku}</td>
+                    <td className="px-10 py-8 font-bold text-slate-700">Segment {item.segment}</td>
+                    <td className="px-10 py-8 font-bold text-slate-700">{item.demand} u</td>
+                    <td className="px-10 py-8 font-bold text-slate-700">{item.lead} Weeks</td>
+                    <td className="px-10 py-8">
+                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${item.status === 'Healthy' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* FORECAST TAB */}
+        {activeTab === 'forecast' && (
+          <div className="animate-in fade-in duration-700 bg-white border border-slate-100 p-12 rounded-[2.5rem] shadow-xl h-[600px]">
+             <h4 className="font-black text-slate-800 mb-10 text-2xl tracking-tighter">Predictive Demand Intelligence</h4>
+             <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={forecastData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="actual" stroke="#94A3B8" fill="#F8FAFC" strokeWidth={2} name="Observed Sales" />
+                  <Area type="monotone" dataKey="forecast" stroke="#6366f1" fill="#EEF2FF" strokeWidth={5} name="AI-Projected Forecast" />
+                </AreaChart>
+             </ResponsiveContainer>
           </div>
         )}
       </main>
@@ -211,27 +210,22 @@ export default function NovaCartFullRestored() {
   );
 }
 
-// --- Minimalist Sub-Components ---
-function NavBtn({ active, onClick, icon, label }: any) {
+// --- Internal Components ---
+function TabBtn({ active, onClick, label }: any) {
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all duration-300 ${active ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
-      {icon} <span className="text-sm tracking-tight">{label}</span>
+    <button onClick={onClick} className={`px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+      {label}
     </button>
   );
 }
 
-function StatCard({ title, val, icon, trend, up, suffix = "" }: any) {
+function SmallStat({ title, val, icon }: any) {
   return (
-    <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col justify-between h-40">
-      <div className="flex justify-between items-start">
-        <div className="p-3 bg-slate-50 rounded-2xl">{icon}</div>
-        <span className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg ${up ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-          {up ? <ArrowUpRight size={12}/> : <ArrowDownRight size={12}/>} {trend}
-        </span>
-      </div>
+    <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-lg shadow-slate-200/30 flex items-center gap-4">
+      <div className="p-3 bg-slate-50 rounded-2xl">{icon}</div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-        <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{val !== undefined ? val : "--"}{suffix}</h2>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{title}</p>
+        <p className="text-xl font-black text-slate-900 tracking-tighter">{val || '--'}</p>
       </div>
     </div>
   );

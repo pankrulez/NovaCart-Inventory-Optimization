@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.stats import norm
-from typing import List, Dict
 
 app = FastAPI()
 
@@ -32,14 +31,10 @@ def calculate_sensitivity(inputs: SimInputs):
     combined_std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
     holding_cost = 25 
     return [{
-        "service_level": f"{int(sl*100)}%",
-        "safety_stock": float(round(norm.ppf(sl) * combined_std, 1)),
-        "carrying_cost": float(round(norm.ppf(sl) * combined_std * holding_cost, 0))
+        "sl": f"{int(sl*100)}%",
+        "ss": float(round(norm.ppf(sl) * combined_std, 1)),
+        "cost": float(round(norm.ppf(sl) * combined_std * holding_cost, 0))
     } for sl in levels]
-
-@app.get("/")
-async def root():
-    return {"status": "online", "gateway": frontend_url}
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
@@ -57,8 +52,8 @@ async def simulate(inputs: SimInputs):
         "metrics": {
             "safety_stock": float(round(ss, 2)),
             "reorder_point": float(round(rop, 2)),
-            "estimated_service_level": float(inputs.service_level * 100),
-            "stockout_probability": float(round((1 - inputs.service_level) * 100, 2))
+            "service_level": float(inputs.service_level * 100),
+            "risk": float(round((1 - inputs.service_level) * 100, 2))
         },
         "chart_data": chart_data,
         "sensitivity": calculate_sensitivity(inputs)
@@ -67,19 +62,16 @@ async def simulate(inputs: SimInputs):
 @app.get("/api/inventory-data")
 async def get_inventory():
     return [
-        {"SKU": "SKU-9920", "SKU_segment": "A - Critical", "avg_weekly_demand": 850.2, "avg_lead_time": 2, "status": "Optimized"},
-        {"SKU": "SKU-4412", "SKU_segment": "A - Critical", "avg_weekly_demand": 420.5, "avg_lead_time": 3, "status": "Under-Stocked"},
-        {"SKU": "SKU-1029", "SKU_segment": "B - Regular", "avg_weekly_demand": 150.0, "avg_lead_time": 5, "status": "Optimized"},
-        {"SKU": "SKU-8821", "SKU_segment": "C - Buffer", "avg_weekly_demand": 45.2, "avg_lead_time": 10, "status": "Over-Stocked"},
+        {"sku": "ITEM-001", "segment": "A", "demand": 850, "lead": 2, "status": "Healthy"},
+        {"sku": "ITEM-042", "segment": "A", "demand": 420, "lead": 3, "status": "Critical"},
+        {"sku": "ITEM-109", "segment": "B", "demand": 150, "lead": 5, "status": "Healthy"},
+        {"sku": "ITEM-882", "segment": "C", "demand": 45, "lead": 10, "status": "Overstocked"},
     ]
 
 @app.get("/api/forecast-data")
 async def get_forecast():
-    return [
-        {"name": "Week 1", "actual": 4200, "forecast": 4100},
-        {"name": "Week 2", "actual": 3800, "forecast": 3950},
-        {"name": "Week 3", "actual": 3100, "forecast": 3200},
-        {"name": "Week 4", "actual": 4500, "forecast": 4300},
-        {"name": "Week 5", "actual": 2900, "forecast": 3100},
-        {"name": "Week 6", "actual": None, "forecast": 3400},
-    ]
+    return [{"name": f"W{i}", "actual": np.random.randint(3000, 4500), "forecast": np.random.randint(3200, 4300)} for i in range(1, 13)]
+
+@app.get("/")
+async def health():
+    return {"status": "online"}
