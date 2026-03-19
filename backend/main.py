@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.stats import norm
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 app = FastAPI()
 
@@ -31,7 +31,6 @@ def calculate_sensitivity(inputs: SimInputs):
     levels = [0.80, 0.85, 0.90, 0.95, 0.97, 0.98, 0.99]
     combined_std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
     holding_cost = 25 
-    
     return [{
         "service_level": f"{int(sl*100)}%",
         "safety_stock": float(round(norm.ppf(sl) * combined_std, 1)),
@@ -40,18 +39,16 @@ def calculate_sensitivity(inputs: SimInputs):
 
 @app.get("/")
 async def root():
-    return {"status": "online", "allowed": frontend_url}
+    return {"status": "online", "gateway": frontend_url}
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
     avg_lt_demand = inputs.avg_demand * inputs.avg_lead_time
     combined_std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
-    
     z = norm.ppf(inputs.service_level)
     ss = z * combined_std
     rop = avg_lt_demand + ss
     
-    # Distribution Curve
     x = np.linspace(avg_lt_demand - (4 * combined_std), avg_lt_demand + (4 * combined_std), 80)
     y = norm.pdf(x, avg_lt_demand, combined_std)
     chart_data = [{"x": float(xi), "y": float(yi)} for xi, yi in zip(x, y)]
@@ -68,9 +65,21 @@ async def simulate(inputs: SimInputs):
     }
 
 @app.get("/api/inventory-data")
-async def get_inv():
-    return [{"SKU": "WH-402", "SKU_segment": "A", "avg_weekly_demand": 450, "avg_lead_time": 2}]
+async def get_inventory():
+    return [
+        {"SKU": "SKU-9920", "SKU_segment": "A - Critical", "avg_weekly_demand": 850.2, "avg_lead_time": 2, "status": "Optimized"},
+        {"SKU": "SKU-4412", "SKU_segment": "A - Critical", "avg_weekly_demand": 420.5, "avg_lead_time": 3, "status": "Under-Stocked"},
+        {"SKU": "SKU-1029", "SKU_segment": "B - Regular", "avg_weekly_demand": 150.0, "avg_lead_time": 5, "status": "Optimized"},
+        {"SKU": "SKU-8821", "SKU_segment": "C - Buffer", "avg_weekly_demand": 45.2, "avg_lead_time": 10, "status": "Over-Stocked"},
+    ]
 
 @app.get("/api/forecast-data")
-async def get_fore():
-    return [{"name": "W1", "actual": 400, "forecast": 420}]
+async def get_forecast():
+    return [
+        {"name": "Week 1", "actual": 4200, "forecast": 4100},
+        {"name": "Week 2", "actual": 3800, "forecast": 3950},
+        {"name": "Week 3", "actual": 3100, "forecast": 3200},
+        {"name": "Week 4", "actual": 4500, "forecast": 4300},
+        {"name": "Week 5", "actual": 2900, "forecast": 3100},
+        {"name": "Week 6", "actual": None, "forecast": 3400},
+    ]
