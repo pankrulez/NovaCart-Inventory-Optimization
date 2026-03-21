@@ -8,6 +8,7 @@ import OptimizerSection from '@/components/Optimizer';
 import OptimizationSection from '@/components/Optimization';
 import DataLabSection from '@/components/DataLab';
 import AboutSection from '@/components/About';
+import PipelineSection from '@/components/Pipeline';
 
 export default function NovaCartModular() {
   // 1. GLOBAL STATE
