@@ -108,6 +108,32 @@ async def simulate(inputs: SimInputs):
         "risk_percent": round(float((1 - inputs.service_level) * 100), 2),
         "chart_points": [{"demand": float(xi), "prob": float(yi)} for xi, yi in zip(x, y)]
     }
+    
+@app.post("/api/simulate/batch")
+async def simulate_batch(items: list[SimInputs]):
+    results = []
+    for item in items:
+        # Real Stochastic Math
+        avg_ltd = item.avg_demand * item.avg_lead_time
+        combined_std = np.sqrt(item.avg_lead_time * (item.demand_std**2) + (item.avg_demand**2) * (item.lead_time_std**2))
+        z = norm.ppf(item.service_level)
+        ss = float(z * combined_std)
+        rop = float(avg_ltd + ss)
+        
+        # New Logic: Days to Stockout (Assuming current OH is slightly above ROP for demo)
+        daily_demand = item.avg_demand / 7
+        current_oh = rop + (np.random.randint(10, 100))
+        days_left = int((current_oh - rop) / daily_demand) if daily_demand > 0 else 99
+        
+        results.append({
+            "sku": f"SKU-{np.random.randint(100, 999)}",
+            "rop": round(rop, 0),
+            "ss": round(ss, 0),
+            "risk": round(float((1 - item.service_level) * 100), 1),
+            "days_to_stockout": days_left,
+            "variance_type": "High" if (item.demand_std / item.avg_demand) > 0.3 else "Stable"
+        })
+    return sorted(results, key=lambda x: x['days_to_stockout'])
 
 @app.post("/api/optimize")
 async def optimize(inputs: OptimizeInputs):
