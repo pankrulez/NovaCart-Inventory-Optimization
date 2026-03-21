@@ -28,8 +28,8 @@ class SimInputs(BaseModel):
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
+    # Mathematics
     avg_ltd = inputs.avg_demand * inputs.avg_lead_time
-    # Stochastic Calculation: σ_total = sqrt( L * σ_d² + D² * σ_l² )
     combined_std = np.sqrt(
         inputs.avg_lead_time * (inputs.demand_std**2) + 
         (inputs.avg_demand**2) * (inputs.lead_time_std**2)
@@ -39,20 +39,18 @@ async def simulate(inputs: SimInputs):
     ss = z_score * combined_std
     rop = avg_ltd + ss
     
-    # Generate 80 smooth points for the distribution
+    # Points
     x = np.linspace(avg_ltd - (4 * combined_std), avg_ltd + (4 * combined_std), 80)
     y = norm.pdf(x, avg_ltd, combined_std)
     
-    # Coordinates for Recharts
-    chart_points = [{"demand": float(xi), "prob": float(yi)} for xi, yi in zip(x, y)]
-
+    # RESPONSE MUST MATCH FRONTEND KEYS
     return {
         "metrics": {
             "safety_stock": round(float(ss), 2),
             "reorder_point": round(float(rop), 2),
             "risk_percent": round(float((1 - inputs.service_level) * 100), 2)
         },
-        "chart_data": chart_points
+        "chart_data": [{"demand": float(xi), "prob": float(yi)} for xi, yi in zip(x, y)]
     }
 
 @app.get("/api/pipeline")
