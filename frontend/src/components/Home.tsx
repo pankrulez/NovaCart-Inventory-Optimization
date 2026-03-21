@@ -124,13 +124,15 @@ export default function HomeSection({ onNavigate }: any) {
             <Zap size={14} className="text-indigo-600" /> Priority Action Feed
           </h3>
           
-          <ActionCard 
-            title="Increase Safety Stock" 
-            impact="High Risk"
-            desc="Demand volatility surged 12.4% for SKU cluster A. The engine suggests increasing buffer by +15%."
-            btnLabel="Adjust ROP"
-            onAction={() => onNavigate('optimizer', { avg_demand: 180, demand_std: 55 })}
-          />
+          {stats?.action_item && (
+            <ActionCard 
+              title={stats.action_item.title} 
+              impact={stats.action_item.impact}
+              desc={stats.action_item.desc}
+              btnLabel="Execute Adjustment"
+              onAction={() => onNavigate('optimizer', stats.action_item.params)}
+            />
+          )}
 
           <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/30 overflow-hidden">
              <div className="flex items-center justify-between mb-6">
@@ -190,9 +192,15 @@ function KPIButton({ title, val, icon, color, onClick }: any) {
   };
 
   return (
-    <button onClick={onClick} className={`bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-lg hover:shadow-xl transition-all group text-left w-full ${colors[color]}`}>
+    <button 
+      onClick={onClick} 
+      className={`bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-lg hover:shadow-xl transition-all group text-left w-full ${colors[color]}`}
+    >
       <div className="flex justify-between items-center mb-6">
-        <div className="bg-slate-50 p-3 rounded-2xl group-hover:bg-slate-900 transition-all shadow-sm">{icon}</div>
+        {/* ICON CONTAINER: Turns Black/Dark Slate on Hover */}
+        <div className="bg-slate-50 p-3 rounded-2xl text-slate-900 group-hover:bg-slate-900 group-hover:text-white transition-all duration-300 shadow-sm">
+          {icon}
+        </div>
         <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
       </div>
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>

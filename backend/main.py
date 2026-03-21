@@ -61,24 +61,37 @@ def calculate_health_index(df):
         "stockout": f"{round(critical_risk_pct / 5, 1)}%" # Simulated impact
     }
 
-@app.get("/api/dashboard/stats")
-async def get_real_stats():
-    # In a real app, this reads from your DB. 
-    # Here, we use a 'typical' high-performing distribution as the base.
-    return {
-        "health": 92,
-        "metrics": [
-            {"label": "Service Level", "val": "96.4%", "weight": "40%"},
-            {"label": "Inv. Turnover", "val": "8.2x", "weight": "30%"},
-            {"label": "Cost Efficiency", "val": "89%", "weight": "30%"}
-        ],
-        "top_risks": [
-            {"id": "NOV-772", "issue": "CV > 0.45", "impact": "Critical"},
-            {"id": "NOV-104", "issue": "LT Variance", "impact": "High"}
-        ]
-    }
 
 # --- ENDPOINTS ---
+
+@app.get("/api/dashboard/stats")
+async def get_real_stats():
+    # 1. Mocking a result from a recent Data Lab upload
+    # In a full DB setup, you'd query: df.sort_values('cv', ascending=False).iloc[0]
+    worst_sku = {"id": "NOV-772", "demand": 160, "std": 64, "lt": 4, "current_ss": 80}
+    
+    # Calculate the 'Prescription': 
+    # To hit 95% Service (z=1.645) for this high-volatility item:
+    required_ss = 1.645 * (worst_sku['std'] * np.sqrt(worst_sku['lt']))
+    adjustment = int(required_ss - worst_sku['current_ss'])
+
+    return {
+        "health_score": 92,
+        "stockout_rate": "2.4%",
+        "holding_cost": "$14,205",
+        "turnover": "8.2x",
+        "action_item": {
+            "title": f"Buffer Shortfall: {worst_sku['id']}",
+            "impact": "High Risk",
+            "desc": f"Volatility reached {round(worst_sku['std']/worst_sku['demand'], 2)} CV. Increase safety stock by +{adjustment} units to prevent a 14% stockout probability.",
+            "target_sku": worst_sku['id'],
+            "params": {"avg_demand": 160, "demand_std": 64}
+        },
+        "risk_skus": [
+            {"id": "NOV-772", "issue": "High CV (0.40)", "impact": "Critical"},
+            {"id": "NOV-104", "issue": "Lead Time Lag", "impact": "High"}
+        ]
+    }
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
