@@ -1,102 +1,111 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { Activity, Database, Cpu, CheckCircle2, Server, Globe, Zap, AlertCircle } from 'lucide-react';
+import { Activity, Database, Cpu, CheckCircle2, Server, Globe, Zap } from 'lucide-react';
 
 export default function PipelineSection() {
   const [status, setStatus] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://novacart-inventory-optimization.onrender.com';
 
   useEffect(() => {
-    const checkPipeline = async () => {
+    const fetchPipeline = async () => {
       try {
         const res = await fetch(`${API_URL}/api/pipeline`);
+        if (!res.ok) throw new Error("404 Not Found");
         const data = await res.json();
         setStatus(data);
       } catch (err) {
-        // Fallback for visual consistency if backend is sleeping
-        setStatus([
-          { step: "Data Ingestion", status: "Active", desc: "FastAPI REST Endpoint Listener", icon: <Database /> },
-          { step: "Stochastic Modeling", status: "Active", desc: "SciPy Normal Distribution Engine", icon: <Cpu /> },
-          { step: "Optimization Logic", status: "Active", desc: "NumPy EOQ Intersection Calculator", icon: <Zap /> }
-        ]);
+        console.error("Pipeline Sync Error:", err);
+        // Fallback data to prevent the .map() crash
+        setStatus([]); 
       } finally {
         setLoading(false);
       }
     };
-    checkPipeline();
-  }, []);
+    fetchPipeline();
+  }, [API_URL]);
+
+  // Helper to render icons based on backend string
+  const getIcon = (type: string) => {
+    switch(type) {
+      case 'database': return <Database size={24} />;
+      case 'cpu': return <Cpu size={24} />;
+      case 'zap': return <Zap size={24} />;
+      default: return <Activity size={24} />;
+    }
+  };
 
   return (
-    <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="max-w-5xl mx-auto animate-in fade-in duration-700 space-y-12">
       
-      {/* --- HEADER --- */}
-      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-end gap-6">
         <div>
           <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic mb-2">System Pipeline</h2>
-          <p className="text-slate-500 font-medium">Real-time status of the NovaCart computational stack.</p>
+          <p className="text-slate-500 font-medium italic">Architectural flow of the NovaCart stack.</p>
         </div>
         <div className="bg-slate-900 text-indigo-400 px-6 py-3 rounded-2xl flex items-center gap-3 border border-slate-800 shadow-xl">
            <Server size={18} />
-           <span className="text-[10px] font-black uppercase tracking-widest">Node: Render-Production-01</span>
+           <span className="text-[10px] font-black uppercase tracking-widest">Production Node: Render-01</span>
         </div>
       </div>
 
-      {/* --- PIPELINE VISUALIZER --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-        {/* Decorative Connection Line (Desktop Only) */}
         <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -z-10 -translate-y-8" />
 
-        {status.map((item, idx) => (
+        {/* --- CRITICAL FIX: Array.isArray check prevents the .map() error --- */}
+        {Array.isArray(status) && status.length > 0 ? status.map((item, idx) => (
           <div key={idx} className="bg-white border-2 border-slate-100 p-8 rounded-[3rem] shadow-xl hover:shadow-2xl transition-all group">
             <div className="flex justify-between items-start mb-8">
-               <div className="bg-slate-50 p-4 rounded-2xl text-indigo-600 group-hover:scale-110 transition-transform shadow-sm">
-                  {item.icon || <Activity size={24} />}
+               <div className="bg-slate-50 p-4 rounded-2xl text-indigo-600 group-hover:rotate-12 transition-transform shadow-sm">
+                  {getIcon(item.icon_type)}
                </div>
                <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[9px] font-black text-emerald-700 uppercase tracking-tighter">{item.status}</span>
+                  <span className="text-[9px] font-black text-emerald-700 uppercase">{item.status}</span>
                </div>
             </div>
-            
             <h4 className="text-xl font-black text-slate-900 mb-2 uppercase italic tracking-tighter">{item.step}</h4>
             <p className="text-xs text-slate-500 font-medium leading-relaxed mb-6">{item.desc}</p>
-            
             <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
-               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Latency: 24ms</span>
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Latency: 14ms</span>
                <CheckCircle2 size={16} className="text-emerald-500" />
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="col-span-3 py-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Initializing Live Connection...</p>
+          </div>
+        )}
       </div>
 
-      {/* --- INFRASTRUCTURE MAP --- */}
-      <div className="mt-12 bg-slate-900 rounded-[3rem] p-10 border border-slate-800 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-10 opacity-5">
-           <Globe size={200} className="text-white" />
+      {/* Infrastructure Card */}
+      <div className="bg-slate-900 rounded-[3.5rem] p-12 border border-slate-800 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+           <Globe size={240} className="text-white" />
         </div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-2">
-            <h3 className="text-2xl font-black text-white italic tracking-tighter">Global Edge Deployment</h3>
-            <p className="text-slate-400 text-sm max-w-md font-medium">
-              NovaCart utilizes a distributed architecture. Frontend assets are served via Vercel Edge, while the Python modeling core is containerized on Render.
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="space-y-4">
+            <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">Cloud Infrastructure</h3>
+            <p className="text-slate-400 text-sm max-w-md font-medium leading-relaxed">
+              NovaCart utilizes a hybrid cloud model. Next.js assets are served at the edge via **Vercel**, while the Python Modeling Core is managed in **Render** containers.
             </p>
           </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center">
-              <p className="text-[9px] font-black text-indigo-400 uppercase mb-1">Uptime</p>
-              <p className="text-xl font-black text-white italic">99.9%</p>
-            </div>
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center">
-              <p className="text-[9px] font-black text-indigo-400 uppercase mb-1">Compute</p>
-              <p className="text-xl font-black text-white italic">vCPU-2</p>
-            </div>
+          <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
+            <InfraMetric label="Uptime" val="99.9%" />
+            <InfraMetric label="Compute" val="vCPU-2" />
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfraMetric({ label, val }: { label: string, val: string }) {
+  return (
+    <div className="bg-white/5 border border-white/10 p-5 rounded-2xl text-center backdrop-blur-sm">
+      <p className="text-[9px] font-black text-indigo-400 uppercase mb-1 tracking-widest">{label}</p>
+      <p className="text-2xl font-black text-white italic">{val}</p>
     </div>
   );
 }

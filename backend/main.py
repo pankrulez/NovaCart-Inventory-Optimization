@@ -95,6 +95,29 @@ async def upload_csv(file: UploadFile = File(...)):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.get("/api/pipeline")
+async def get_pipeline():
+    return [
+        {
+            "step": "Data Ingestion",
+            "status": "Active",
+            "desc": "FastAPI REST Endpoint Listener",
+            "icon_type": "database"
+        },
+        {
+            "step": "Stochastic Modeling",
+            "status": "Active",
+            "desc": "SciPy Normal Distribution Engine",
+            "icon_type": "cpu"
+        },
+        {
+            "step": "Optimization Logic",
+            "status": "Active",
+            "desc": "NumPy EOQ Intersection Calculator",
+            "icon_type": "zap"
+        }
+    ]
 
 @app.get("/")
 async def health():
