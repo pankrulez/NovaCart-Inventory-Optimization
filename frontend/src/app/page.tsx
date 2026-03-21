@@ -15,6 +15,7 @@ export default function NovaCartModular() {
   const [activeTab, setActiveTab] = useState('home');
   const [loading, setLoading] = useState(false);
   const [simData, setSimData] = useState<any>(null);
+  const [dataLabReport, setDataLabReport] = useState<any>(null);
   
   // Stochastic Inputs State
   const [inputs, setInputs] = useState({ 
@@ -98,7 +99,12 @@ export default function NovaCartModular() {
         
         {activeTab === 'optimization' && <OptimizationSection />}
         
-        {activeTab === 'data-lab' && <DataLabSection />}
+        {activeTab === 'data-lab' && (
+          <DataLabSection 
+            report={dataLabReport} 
+            setReport={setDataLabReport} 
+          />
+        )}
 
         {activeTab === 'pipeline' && <PipelineSection />}
         
