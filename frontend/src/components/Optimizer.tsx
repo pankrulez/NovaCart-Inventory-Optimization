@@ -4,37 +4,39 @@ import { Activity, RefreshCcw, Package, AlertTriangle, Info } from 'lucide-react
 
 export default function OptimizerSection({ inputs, setInputs, handleSimulate, simData, loading }: any) {
   
-  // LOGIC: Automatically find the data even if it's nested
-  const data = simData?.data ? simData.data : simData;
+  // Logic: The chart needs data points. We pull 'chart_data' from your log.
+  const chartPoints = simData?.chart_data || [];
+  const metrics = simData?.metrics;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* Metric Cards */}
+      {/* --- KPI CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
           title="Safety Stock" 
-          val={data?.safety_stock} 
+          val={metrics?.safety_stock} 
           icon={<Package className="text-indigo-600"/>} 
           suffix=" units" 
         />
         <StatCard 
           title="Reorder Point" 
-          val={data?.reorder_point} 
+          val={metrics?.reorder_point} 
           icon={<Activity className="text-blue-600"/>} 
           suffix=" units" 
         />
         <StatCard 
           title="Stockout Risk" 
-          val={data?.risk_percent} 
+          val={metrics?.stockout_probability} // Matches your 'stockout_probability' key
           icon={<AlertTriangle className="text-rose-600"/>} 
           suffix="%" 
         />
       </div>
 
       <div className="grid grid-cols-12 gap-8">
-        <div className="col-span-12 lg:col-span-4 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm h-fit">
-          <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 mb-8 italic">Parameters</h3>
+        {/* --- INPUT PANEL --- */}
+        <div className="col-span-12 lg:col-span-4 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+          <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 mb-8 italic">Model Parameters</h3>
           <div className="space-y-5">
             <InputItem label="Avg Demand" val={inputs.avg_demand} fn={(v) => setInputs({...inputs, avg_demand: v})} />
             <InputItem label="Demand σ" val={inputs.demand_std} fn={(v) => setInputs({...inputs, demand_std: v})} />
@@ -48,43 +50,56 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
             </div>
 
-            <button 
-              onClick={handleSimulate}
-              disabled={loading}
-              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-            >
+            <button onClick={handleSimulate} disabled={loading} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
               {loading ? <RefreshCcw className="animate-spin" /> : "RUN STOCHASTIC ENGINE"}
             </button>
           </div>
         </div>
 
+        {/* --- CHART PANEL --- */}
         <div className="col-span-12 lg:col-span-8 bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-200 shadow-sm min-h-[500px]">
           <h3 className="font-bold text-slate-800 mb-8 italic">Stochastic Demand Curve</h3>
           
           <div className="h-[300px] w-full">
-            {data?.chart_points ? (
+            {chartPoints.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.chart_points} margin={{ bottom: 20 }}>
+                <AreaChart data={chartPoints} margin={{ bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis 
-                    dataKey="demand" 
+                    dataKey="x" // Matches your 'x' key from console
                     type="number" 
                     domain={['auto', 'auto']}
                     tick={{fontSize: 10, fill: '#94a3b8'}}
-                    label={{ value: 'Demand Units', position: 'insideBottom', offset: -10, fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
+                    label={{ value: 'Demand Units', position: 'bottom', fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
                   />
-                  <YAxis hide width={0} />
-                  <Tooltip labelFormatter={(v) => `Demand: ${Math.round(v)}`} />
-                  <Area type="monotone" dataKey="prob" stroke="#6366f1" fill="#6366f1" fillOpacity={0.05} strokeWidth={4} />
-                  {data?.reorder_point && (
-                    <ReferenceLine x={data.reorder_point} stroke="#F43F5E" strokeDasharray="8 8" strokeWidth={2} />
+                  <YAxis hide />
+                  <Tooltip 
+                    labelFormatter={(v) => `Demand: ${Math.round(v)}`}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="y" // Matches your 'y' key from console
+                    stroke="#6366f1" 
+                    fill="#6366f1" 
+                    fillOpacity={0.05} 
+                    strokeWidth={4} 
+                  />
+                  {metrics?.reorder_point && (
+                    <ReferenceLine 
+                      x={metrics.reorder_point} 
+                      stroke="#F43F5E" 
+                      strokeDasharray="8 8" 
+                      strokeWidth={2}
+                      label={{ position: 'top', value: 'ROP', fill: '#F43F5E', fontSize: 10, fontWeight: 'bold' }}
+                    />
                   )}
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-100 rounded-[2rem]">
                  <Activity size={48} className="mb-4 opacity-20" />
-                 <p className="font-bold uppercase tracking-widest text-[10px]">Execute model to render results</p>
+                 <p className="font-bold uppercase tracking-widest text-[10px]">Awaiting Model Data</p>
               </div>
             )}
           </div>
@@ -92,7 +107,7 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
           <div className="mt-8 p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex gap-4">
              <Info className="text-indigo-500 shrink-0" size={20} />
              <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                The curve represents probability of demand. The <strong>Reorder Point (ROP)</strong> is where inventory triggers to ensure availability at your target service level.
+                The <strong>Stochastic Curve</strong> visualizes demand uncertainty. The red dashed line (ROP) identifies the threshold to trigger orders and maintain the target service level.
              </p>
           </div>
         </div>
@@ -122,7 +137,7 @@ function InputItem({ label, val, fn }: { label: string; val: number; fn: (v: num
         type="number" 
         value={val} 
         onChange={(e) => fn(parseFloat(e.target.value) || 0)} 
-        className="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-600 outline-none" 
+        className="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-600 outline-none transition-all" 
       />
     </div>
   );
