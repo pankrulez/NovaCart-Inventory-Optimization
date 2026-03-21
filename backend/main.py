@@ -39,12 +39,13 @@ async def simulate(inputs: SimInputs):
     ss = z_score * combined_std
     rop = avg_ltd + ss
     
-    # Generate Chart Data
+    # Generate Chart Data with explicit labels
     x = np.linspace(avg_ltd - (4 * combined_std), avg_ltd + (4 * combined_std), 80)
     y = norm.pdf(x, avg_ltd, combined_std)
-    chart_points = [{"x": float(xi), "y": float(yi)} for xi, yi in zip(x, y)]
+    
+    # These keys 'demand' and 'prob' will be used in the Frontend XAxis/Area
+    chart_points = [{"demand": float(xi), "prob": float(yi)} for xi, yi in zip(x, y)]
 
-    # RESPONSE KEYS (Must match Frontend)
     return {
         "metrics": {
             "safety_stock": float(round(ss, 2)),
