@@ -28,7 +28,7 @@ class SimInputs(BaseModel):
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
-    # Mathematics: Combined Uncertainty
+    # Mathematics
     avg_ltd = inputs.avg_demand * inputs.avg_lead_time
     combined_std = np.sqrt(
         inputs.avg_lead_time * (inputs.demand_std**2) + 
@@ -36,21 +36,22 @@ async def simulate(inputs: SimInputs):
     )
     
     z_score = norm.ppf(inputs.service_level)
-    safety_stock = z_score * combined_std
-    reorder_point = avg_ltd + safety_stock
+    ss = z_score * combined_std
+    rop = avg_ltd + ss
     
-    # Generate Chart Points (80 points for a smooth curve)
+    # Generate Chart Data
     x = np.linspace(avg_ltd - (4 * combined_std), avg_ltd + (4 * combined_std), 80)
     y = norm.pdf(x, avg_ltd, combined_std)
     chart_points = [{"x": float(xi), "y": float(yi)} for xi, yi in zip(x, y)]
 
+    # RESPONSE KEYS (Must match Frontend)
     return {
         "metrics": {
-            "safety_stock": round(safety_stock, 2),
-            "reorder_point": round(reorder_point, 2),
-            "risk": round((1 - inputs.service_level) * 100, 2)
+            "safety_stock": float(round(ss, 2)),
+            "reorder_point": float(round(rop, 2)),
+            "risk_percent": float(round((1 - inputs.service_level) * 100, 2))
         },
-        "chart": chart_points
+        "chart_data": chart_points
     }
 
 @app.get("/api/pipeline")

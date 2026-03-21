@@ -35,7 +35,8 @@ export default function NovaCartModular() {
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-slate-900">
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-12 py-5 flex justify-between items-center">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-4 md:px-12 py-4 md:py-5 flex justify-between items-center overflow-x-auto whitespace-nowrap">
+      {/* Add 'overflow-x-auto' to ensure the tab bar can be swiped on small screens */}
         <div className="flex items-center gap-2">
           <Layers className="text-indigo-600 w-6 h-6" />
           <span className="text-xl font-black tracking-tighter">NovaCart.</span>
