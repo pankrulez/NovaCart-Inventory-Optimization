@@ -53,7 +53,7 @@ export default function NovaCartModular() {
         {activeTab === 'home' && <HomeSection />}
         {activeTab === 'optimizer' && <OptimizerSection inputs={inputs} setInputs={setInputs} handleSimulate={handleSimulate} simData={simData} loading={loading} />}
         {activeTab === 'data-lab' && <DataLabSection />}
-        {activeTab === 'pipeline' && <PipelineSection />}
+        {activeTab === 'pipeline' && <PipelineSection pipeline={pipeline} />}
         {activeTab === 'about' && <AboutSection />}
       </main>
     </div>
