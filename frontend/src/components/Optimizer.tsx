@@ -3,13 +3,10 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 import { Activity, RefreshCcw, Package, AlertTriangle, Info } from 'lucide-react';
 
 export default function OptimizerSection({ inputs, setInputs, handleSimulate, simData, loading }: any) {
-  
-  // Debugging line - Check your browser console (F12) to see if this fires
-  console.log("Optimizer Received simData:", simData);
-
   return (
-    <div className="space-y-8">
-      {/* Metric Cards */}
+    <div className="space-y-8 animate-in fade-in duration-500">
+      
+      {/* Metric Cards - Using FLAT keys */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard 
           title="Safety Stock" 
@@ -32,8 +29,8 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
       </div>
 
       <div className="grid grid-cols-12 gap-8">
-        {/* Controls */}
-        <div className="col-span-12 lg:col-span-4 bg-white p-8 rounded-[2rem] border border-slate-200">
+        {/* Input Panel */}
+        <div className="col-span-12 lg:col-span-4 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
           <h3 className="font-black text-[10px] uppercase tracking-widest text-slate-400 mb-8 italic">Parameters</h3>
           <div className="space-y-5">
             <InputItem label="Avg Demand" val={inputs.avg_demand} fn={(v) => setInputs({...inputs, avg_demand: v})} />
@@ -42,21 +39,28 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
             <InputItem label="Lead Time σ" val={inputs.lead_time_std} fn={(v) => setInputs({...inputs, lead_time_std: v})} />
             
             <div className="pt-4 border-t border-slate-100">
-               <label className="text-[10px] font-black text-indigo-600 uppercase mb-4 block">Target Service: {Math.round(inputs.service_level * 100)}%</label>
+               <label className="text-[10px] font-black text-indigo-600 uppercase mb-4 block italic">Target Service: {Math.round(inputs.service_level * 100)}%</label>
                <input type="range" min="0.80" max="0.99" step="0.01" value={inputs.service_level} 
                 onChange={(e) => setInputs({...inputs, service_level: parseFloat(e.target.value)})}
                 className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
             </div>
 
-            <button onClick={handleSimulate} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-indigo-600 transition-all flex items-center justify-center gap-3">
-              {loading ? <RefreshCcw className="animate-spin" /> : "RUN ANALYSIS"}
+            <button 
+              onClick={() => {
+                console.log("🖱️ Button Clicked");
+                handleSimulate();
+              }} 
+              disabled={loading}
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              {loading ? <RefreshCcw className="animate-spin" /> : "RUN STOCHASTIC ENGINE"}
             </button>
           </div>
         </div>
 
-        {/* Chart Area */}
+        {/* Chart Panel */}
         <div className="col-span-12 lg:col-span-8 bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-200 shadow-sm min-h-[500px]">
-          <h3 className="font-bold text-slate-800 mb-8 italic">Stochastic Demand Curve</h3>
+          <h3 className="font-bold text-slate-800 mb-8 italic">Demand Probability Curve</h3>
           
           <div className="h-[300px] w-full">
             {simData?.chart_points ? (
@@ -68,7 +72,7 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
                     type="number" 
                     domain={['auto', 'auto']}
                     tick={{fontSize: 10, fill: '#94a3b8'}}
-                    label={{ value: 'Units', position: 'bottom', fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
+                    label={{ value: 'Demand Units', position: 'insideBottom', offset: -10, fontSize: 10, fill: '#64748b', fontWeight: 'bold' }}
                   />
                   <YAxis hide width={0} />
                   <Tooltip labelFormatter={(v) => `Demand: ${Math.round(v)}`} />
@@ -81,7 +85,7 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-300 border-2 border-dashed border-slate-100 rounded-[2rem]">
                  <Activity size={48} className="mb-4 opacity-20" />
-                 <p className="font-bold uppercase tracking-widest text-[10px]">Execute Model to Render</p>
+                 <p className="font-bold uppercase tracking-widest text-[10px]">Execute model to view distribution</p>
               </div>
             )}
           </div>
@@ -89,7 +93,7 @@ export default function OptimizerSection({ inputs, setInputs, handleSimulate, si
           <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 flex gap-4">
              <Info className="text-indigo-500 shrink-0" size={20} />
              <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                The curve models demand variability. The <strong>Reorder Point</strong> is where inventory triggers to meet your target service level.
+                This curve models demand variability during lead time. The <strong>Reorder Point</strong> is the threshold where inventory replenishment must trigger.
              </p>
           </div>
         </div>
@@ -119,7 +123,7 @@ function InputItem({ label, val, fn }: { label: string; val: number; fn: (v: num
         type="number" 
         value={val} 
         onChange={(e) => fn(parseFloat(e.target.value) || 0)} 
-        className="w-full bg-slate-50 border-none rounded-xl px-4 py-2 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-600 outline-none" 
+        className="w-full bg-slate-50 border-none rounded-xl px-4 py-2.5 font-bold text-slate-700 focus:ring-2 focus:ring-indigo-600 outline-none transition-all" 
       />
     </div>
   );

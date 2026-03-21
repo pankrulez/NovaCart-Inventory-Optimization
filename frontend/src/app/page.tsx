@@ -1,8 +1,6 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layers } from 'lucide-react';
-
-// Modular Components
 import HomeSection from '@/components/Home';
 import OptimizerSection from '@/components/Optimizer';
 import PipelineSection from '@/components/Pipeline';
@@ -23,9 +21,15 @@ export default function NovaCartModular() {
     service_level: 0.95 
   });
 
+  // Ensure this points to your Render backend
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
+  useEffect(() => {
+    console.log("🌐 Current API Target:", API_URL);
+  }, [API_URL]);
+
   const handleSimulate = async () => {
+    console.log("🚀 Simulation Triggered with inputs:", inputs);
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/simulate`, {
@@ -34,27 +38,21 @@ export default function NovaCartModular() {
         body: JSON.stringify(inputs),
       });
       
-      const result = await res.json();
-      console.log("🔥 API Response Received:", result); // CHECK THIS IN F12 CONSOLE
-      setSimData(result);
+      if (!res.ok) throw new Error(`Server Error: ${res.status}`);
+      
+      const data = await res.json();
+      console.log("✅ Data Received from Backend:", data);
+      setSimData(data);
     } catch (error) {
-      console.error("❌ Simulation Failed:", error);
+      console.error("❌ Fetch Error:", error);
+      alert("Failed to connect to backend. Check console (F12).");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (activeTab === 'pipeline') {
-      fetch(`${API_URL}/api/pipeline`)
-        .then(r => r.json())
-        .then(setPipeline)
-        .catch(err => console.error("Pipeline Fetch Error:", err));
-    }
-  }, [activeTab, API_URL]);
-
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-slate-900">
+    <div className="min-h-screen bg-[#F9FAFB] text-slate-900 font-sans">
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 px-6 md:px-12 py-5 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Layers className="text-indigo-600 w-6 h-6" />
