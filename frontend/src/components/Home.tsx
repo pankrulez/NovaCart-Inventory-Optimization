@@ -1,121 +1,106 @@
 "use client";
 import React from 'react';
 import { 
-  TrendingUp, AlertCircle, ShieldCheck, DollarSign, 
-  ArrowUpRight, Activity, Zap, BarChart, Info, Target, Box
+  ShieldCheck, AlertTriangle, ArrowUpRight, Zap, 
+  Activity, Info, ChevronRight, Package, DollarSign, Target 
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
-export default function HomeSection() {
-  const trendData = [
-    { name: 'M', value: 400 }, { name: 'T', value: 300 },
-    { name: 'W', value: 600 }, { name: 'T', value: 800 },
-    { name: 'F', value: 500 }, { name: 'S', value: 900 },
-  ];
-
+export default function HomeSection({ onNavigate }: any) {
+  
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       
-      {/* --- PROJECT OVERVIEW HEADER --- */}
+      {/* --- 1. PROJECT OVERVIEW --- */}
       <div className="bg-white border-2 border-slate-100 p-10 rounded-[3rem] shadow-xl shadow-slate-200/50 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <Box size={180} className="text-indigo-600" />
-        </div>
         <div className="relative z-10 max-w-3xl space-y-4">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">NovaCart: Adaptive Inventory Engine</h2>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">NovaCart Architecture</h2>
           <p className="text-slate-500 font-medium leading-relaxed">
-            An enterprise-grade supply chain solution utilizing <strong className="text-slate-900 font-black">Stochastic Modeling</strong> and <strong className="text-slate-900 font-black">Economic Order Quantity (EOQ)</strong> optimization. 
-            NovaCart analyzes demand volatility and lead-time variance to minimize holding costs while maintaining a 
-            <strong className="text-slate-900 font-black"> 95%+ service level</strong> across global catalogs.
+            A stochastic inventory engine that bridges the gap between <strong className="text-slate-900 font-black">Predictive Analytics</strong> and <strong className="text-slate-900 font-black">Operational Execution</strong>.
           </p>
-          <div className="flex gap-4">
-            <span className="bg-indigo-50 text-indigo-600 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-indigo-100 shadow-sm">Statistical Simulation</span>
-            <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-emerald-100 shadow-sm">Real-time Optimization</span>
-          </div>
         </div>
       </div>
 
-      {/* --- TOP ROW: KPI STRIP --- */}
+      {/* --- 2. CLICKABLE KPI STRIP (DRILL-DOWN) --- */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <KPIItem title="Inv. Turnover" val="8.4x" change="+12%" up={true} icon={<Activity size={16}/>} />
-        <KPIItem title="Stockout Rate" val="2.1%" change="-0.5%" up={true} icon={<AlertCircle size={16}/>} />
-        <KPIItem title="Holding Cost" val="$14.2k" change="+3%" up={false} icon={<DollarSign size={16}/>} />
-        <KPIItem title="Dead Stock" val="4.8%" change="-1.2%" up={true} icon={<BarChart size={16}/>} />
-      </div>
-
-      {/* --- METRIC DEFINITIONS (EXPLAINER) --- */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 px-2">
-        <MetricDef label="Inventory Turnover" desc="How many times a year stock is sold and replaced." />
-        <MetricDef label="Stockout Rate" desc="Percentage of items unavailable when a customer orders." />
-        <MetricDef label="Holding Cost" desc="Total cost of storing unsold goods (warehouse, insurance)." />
-        <MetricDef label="Dead Stock" desc="Items that haven't sold in 6 months; wasted capital." />
+        <KPIButton 
+          title="Stockout Rate" val="2.1%" change="-0.5%" 
+          icon={<AlertTriangle size={16}/>} color="rose"
+          onClick={() => onNavigate('optimizer')} 
+        />
+        <KPIButton 
+          title="Holding Cost" val="$14.2k" change="+3%" 
+          icon={<DollarSign size={16}/>} color="indigo"
+          onClick={() => onNavigate('optimization')} 
+        />
+        <KPIButton 
+          title="Inv. Turnover" val="8.4x" change="+12%" 
+          icon={<Activity size={16}/>} color="emerald"
+          onClick={() => onNavigate('data-lab')} 
+        />
+        <KPIButton 
+          title="Dead Stock" val="4.8%" change="-1.2%" 
+          icon={<Package size={16}/>} color="amber"
+          onClick={() => onNavigate('data-lab')} 
+        />
       </div>
 
       <div className="grid grid-cols-12 gap-8">
-        {/* --- LEFT: INVENTORY HEALTH SCORE --- */}
-        <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl relative overflow-hidden group border border-slate-800">
-          <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
-             <ShieldCheck size={280} />
-          </div>
-          
+        {/* --- 3. HEALTH SCORE BREAKDOWN --- */}
+        <div className="col-span-12 lg:col-span-5 bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl relative overflow-hidden border border-slate-800">
           <div className="relative z-10 space-y-8">
-            <div>
-              <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-4">Operational Status</p>
-              <h2 className="text-4xl font-black italic tracking-tighter uppercase">Inventory Health</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-black italic tracking-tighter uppercase">Inventory Health</h2>
+              <span className="text-5xl font-black text-indigo-400 italic">92</span>
             </div>
 
-            <div className="flex items-baseline gap-4">
-              <span className="text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-500">
-                92
-              </span>
-              <div className="space-y-1">
-                 <p className="text-emerald-400 font-black text-xl flex items-center gap-1 uppercase tracking-tighter">
-                   <ArrowUpRight size={20}/> Optimal
-                 </p>
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Weighted Efficiency Index</p>
-              </div>
+            <div className="space-y-5">
+               <ScoreBar label="Service Level Coverage" val="96%" weight="40%" color="bg-indigo-500" />
+               <ScoreBar label="Inventory Turnover" val="82%" weight="30%" color="bg-emerald-500" />
+               <ScoreBar label="Cost Efficiency" val="88%" weight="30%" color="bg-blue-500" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-4">
-               <HealthMetric label="Service Level" val="96.4%" color="bg-indigo-500" tooltip="Probability of fulfilling all customer demand based on safety stock." />
-               <HealthMetric label="Capital Efficiency" val="88.1%" color="bg-emerald-500" tooltip="Balance between inventory investment and operational cost." />
+            <div className="pt-6 border-t border-slate-800">
+               <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-relaxed">
+                  The health score is a weighted index balancing <strong className="text-slate-300">Service Reliability</strong> vs <strong className="text-slate-300">Capital Lock-up</strong>.
+               </p>
             </div>
           </div>
         </div>
 
-        {/* --- RIGHT: INSIGHT CARDS (DECISION LAYER) --- */}
+        {/* --- 4. ACTION FEED (PRIORITIZED) --- */}
         <div className="col-span-12 lg:col-span-7 space-y-6">
-          <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.3em] flex items-center gap-3 italic font-bold">
-            <Zap size={14} className="text-indigo-600" /> Intelligence Feed
+          <h3 className="text-xs font-black uppercase text-slate-400 tracking-[0.3em] flex items-center gap-3 italic">
+            <Zap size={14} className="text-indigo-600" /> Priority Action Feed
           </h3>
           
-          <InsightCard 
-            title="Stockout Risk" 
-            desc="Demand volatility increased 12.4% across high-margin SKUs. The Stochastic engine suggests increasing safety buffer."
-            stat="+12.4%" 
-            isWarning={true}
+          <ActionCard 
+            title="Increase Safety Stock" 
+            impact="High Risk"
+            desc="Demand volatility surged 12.4% for SKU-A01. Increase buffer by +15% to maintain 95% service."
+            btnLabel="Adjust ROP"
+            onAction={() => onNavigate('optimizer', { avg_demand: 180, demand_std: 55 })}
           />
 
-          <InsightCard 
-            title="Revenue Concentration" 
-            desc="Top 5 items drive 60% of cashflow. Focus EOQ replenishment logic on these core SKUs to maintain momentum."
-            stat="High" 
-            isWarning={false}
-          />
-
-          {/* Mini Demand Chart */}
-          <div className="bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/30 flex items-center justify-between group transition-all hover:border-slate-100">
-             <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Demand Pulse</p>
-                <h4 className="text-2xl font-black text-slate-900 tracking-tighter italic">Active Scaling</h4>
+          {/* --- 5. TOP SKUs DRIVING RISK (TABLE) --- */}
+          <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/30 overflow-hidden">
+             <div className="flex items-center justify-between mb-6">
+                <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Top Risk Drivers</h4>
+                <Target size={14} className="text-slate-300" />
              </div>
-             <div className="h-16 w-32 grayscale group-hover:grayscale-0 transition-all duration-700">
-                <ResponsiveContainer width="100%" height="100%">
-                   <AreaChart data={trendData}>
-                      <Area type="monotone" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} strokeWidth={3} />
-                   </AreaChart>
-                </ResponsiveContainer>
-             </div>
+             <table className="w-full text-left">
+                <thead>
+                   <tr className="text-[9px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-50">
+                      <th className="pb-3">SKU ID</th>
+                      <th className="pb-3">Primary Issue</th>
+                      <th className="pb-3 text-right">Impact</th>
+                   </tr>
+                </thead>
+                <tbody className="text-xs font-bold text-slate-700">
+                   <RiskRow id="NOV-001" issue="High CV (0.42)" impact="-12% Service" color="text-rose-600" />
+                   <RiskRow id="NOV-042" issue="Lead Time Delay" impact="+8% Holding" color="text-amber-600" />
+                   <RiskRow id="NOV-089" issue="Overstocked" impact="Capital Lock" color="text-indigo-600" />
+                </tbody>
+             </table>
           </div>
         </div>
       </div>
@@ -123,63 +108,65 @@ export default function HomeSection() {
   );
 }
 
-// --- HELPER COMPONENTS ---
+// --- HELPERS ---
 
-function MetricDef({ label, desc }: { label: string, desc: string }) {
-  return (
-    <div className="p-3 border-l-2 border-slate-100 group hover:border-indigo-400 transition-colors">
-      <h5 className="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-1 italic">{label}</h5>
-      <p className="text-[10px] text-slate-400 font-medium leading-tight">{desc}</p>
-    </div>
-  );
-}
+function KPIButton({ title, val, change, up, icon, color, onClick }: any) {
+  const colors: any = {
+    rose: 'hover:border-rose-200 group-hover:text-rose-600',
+    indigo: 'hover:border-indigo-200 group-hover:text-indigo-600',
+    emerald: 'hover:border-emerald-200 group-hover:text-emerald-600',
+    amber: 'hover:border-amber-200 group-hover:text-amber-600',
+  };
 
-function KPIItem({ title, val, change, up, icon }: any) {
   return (
-    <div className="bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-lg hover:shadow-xl transition-all group">
+    <button onClick={onClick} className={`bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-lg hover:shadow-xl transition-all group text-left w-full ${colors[color]}`}>
       <div className="flex justify-between items-center mb-6">
-        <div className="bg-slate-50 p-3 rounded-2xl text-slate-900 group-hover:bg-slate-900 group-hover:text-indigo-400 transition-all shadow-sm">
-          {icon}
-        </div>
-        <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${up ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-          {change}
-        </span>
+        <div className="bg-slate-50 p-3 rounded-2xl group-hover:bg-slate-900 transition-all">{icon}</div>
+        <ChevronRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
       </div>
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
       <h4 className="text-3xl font-black text-slate-900 tracking-tighter italic">{val}</h4>
+    </button>
+  );
+}
+
+function ScoreBar({ label, val, weight, color }: any) {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter">
+        <span className="text-slate-400">{label} <span className="text-slate-600 ml-1 italic">({weight})</span></span>
+        <span className="text-white">{val}</span>
+      </div>
+      <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+        <div className={`h-full ${color}`} style={{ width: val }} />
+      </div>
     </div>
   );
 }
 
-function HealthMetric({ label, val, color, tooltip }: any) {
+function ActionCard({ title, impact, desc, btnLabel, onAction }: any) {
   return (
-    <div className="bg-white/5 border border-white/10 p-5 rounded-2xl group/tip relative">
-      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-        {label} <Info size={10} className="opacity-40" />
-      </p>
-      <div className="flex items-center gap-4">
-        <span className="text-xl font-black text-white italic">{val}</span>
-        <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-           <div className={`h-full ${color} transition-all duration-1000`} style={{ width: val }} />
+    <div className="p-8 rounded-[3rem] border-2 bg-indigo-50 border-indigo-100 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 hover:scale-[1.01] transition-transform">
+      <div className="space-y-2 text-center md:text-left">
+        <div className="flex items-center gap-2 justify-center md:justify-start">
+           <h4 className="text-sm font-black uppercase tracking-tighter text-indigo-900">{title}</h4>
+           <span className="text-[8px] font-black bg-rose-500 text-white px-2 py-0.5 rounded-full uppercase tracking-widest">{impact}</span>
         </div>
+        <p className="text-xs font-medium text-indigo-700/70 max-w-sm leading-relaxed">{desc}</p>
       </div>
-      <div className="absolute bottom-full left-0 mb-2 w-48 p-3 bg-slate-800 text-[9px] text-slate-300 rounded-xl opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none border border-slate-700 shadow-2xl z-50">
-        {tooltip}
-      </div>
+      <button onClick={onAction} className="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all flex items-center gap-2 shrink-0">
+        {btnLabel} <ChevronRight size={12} />
+      </button>
     </div>
   );
 }
 
-function InsightCard({ title, desc, stat, isWarning }: any) {
+function RiskRow({ id, issue, impact, color }: any) {
   return (
-    <div className={`p-8 rounded-[3rem] border-2 flex items-center justify-between shadow-xl transition-all hover:translate-x-1 ${isWarning ? 'bg-rose-50 border-rose-100' : 'bg-indigo-50 border-indigo-100'}`}>
-      <div className="space-y-2">
-        <h4 className={`text-sm font-black uppercase tracking-tighter ${isWarning ? 'text-rose-900' : 'text-indigo-900'}`}>{title}</h4>
-        <p className={`text-xs font-medium max-w-sm leading-relaxed ${isWarning ? 'text-rose-700/70' : 'text-indigo-700/70'}`}>{desc}</p>
-      </div>
-      <div className={`text-2xl font-black italic tracking-tighter ${isWarning ? 'text-rose-600' : 'text-indigo-600'}`}>
-        {stat}
-      </div>
-    </div>
+    <tr className="border-b border-slate-50 last:border-0">
+      <td className="py-4 text-slate-900 font-black italic">{id}</td>
+      <td className="py-4 text-slate-500 font-medium">{issue}</td>
+      <td className={`py-4 text-right font-black ${color}`}>{impact}</td>
+    </tr>
   );
 }

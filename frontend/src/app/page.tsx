@@ -12,6 +12,12 @@ import PipelineSection from '@/components/Pipeline';
 import DemandForecastSection from '@/components/DemandForecast';
 
 export default function NovaCartModular() {
+  const navigateToTab = (tabId: string, customInputs?: any) => {
+  setActiveTab(tabId);
+  if (customInputs) {
+    setInputs({ ...inputs, ...customInputs });
+  }
+};
   // 1. GLOBAL STATE
   const [activeTab, setActiveTab] = useState('home');
   const [loading, setLoading] = useState(false);
@@ -87,7 +93,7 @@ export default function NovaCartModular() {
 
       {/* --- MAIN CONTENT AREA --- */}
       <main className="max-w-6xl mx-auto py-12 px-8">
-        {activeTab === 'home' && <HomeSection />}
+        {activeTab === 'home' && <HomeSection onNavigate={navigateToTab} />}
         
         {activeTab === 'optimizer' && (
           <OptimizerSection 
