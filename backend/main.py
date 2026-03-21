@@ -67,27 +67,25 @@ async def upload_csv(file: UploadFile = File(...)):
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
         
-        # Validation: Check if required columns exist
-        required = {'demand', 'demand_std', 'lead_time'}
-        if not required.issubset(df.columns):
-            raise HTTPException(status_code=400, detail=f"Missing columns. Required: {required}")
+        # Calculate ROP/EOQ for the whole batch
+        df['cv'] = df['demand_std'] / df['demand']
+        df['rop'] = (df['demand'] * df['lead_time']) + (1.645 * np.sqrt(df['lead_time']*df['demand_std']**2 + df['demand']**2*df['lead_time_std']**2))
+        
+        # Create bins for the Risk Distribution Chart
+        risk_bins = pd.cut(df['cv'], bins=[0, 0.1, 0.2, 0.3, 1.0], labels=['Low', 'Medium', 'High', 'Critical'])
+        risk_dist = risk_bins.value_counts().reset_index()
+        risk_dist.columns = ['level', 'count']
 
-        # Summary Metrics
-        total_skus = len(df)
-        avg_lt = f"{round(df['lead_time'].mean(), 1)} Weeks"
-        
-        # Calculate CV (Coefficient of Variation)
-        cv_series = df['demand_std'] / df['demand']
-        avg_cv = f"{round(cv_series.mean() * 100, 1)}%"
-        
-        # Risk Segmentation: SKUs with CV > 0.3 are considered "High Volatility"
-        at_risk = int((cv_series > 0.3).sum())
-        
+        # Scatter plot data (subset to first 50 items to keep UI snappy)
+        scatter_data = df[['SKU', 'demand', 'lead_time', 'rop']].head(50).to_dict(orient='records')
+
         return {
-            "skus": total_skus,
-            "avg_lead": avg_lt,
-            "variance": avg_cv,
-            "at_risk": at_risk,
+            "skus": len(df),
+            "avg_lead": f"{round(df['lead_time'].mean(), 1)} Weeks",
+            "variance": f"{round(df['cv'].mean() * 100, 1)}%",
+            "at_risk": int((df['cv'] > 0.3).sum()),
+            "risk_chart": risk_dist.to_dict(orient='records'),
+            "scatter_points": scatter_data,
             "filename": file.filename
         }
     except Exception as e:
