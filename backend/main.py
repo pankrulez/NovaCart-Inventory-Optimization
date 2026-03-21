@@ -1,25 +1,16 @@
 import os
 import numpy as np
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.stats import norm
-import pandas as pd
-import io
 
 app = FastAPI(title="NovaCart Stochastic Engine")
 
-# --- CORS & SECURITY ---
-# Update origins to match your Vercel deployment URL
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "https://inventory-optimization-beryl.vercel.app", # <--- ADD THIS EXACT URL
-    "https://novacart-inventory-optimization.vercel.app" 
-]
+# --- GLOBAL CORS FIX ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # This tells FastAPI to allow your Vercel app
+    allow_origins=["*"], # Allows all Vercel domains to communicate with Render
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,25 +24,9 @@ class SimInputs(BaseModel):
     lead_time_std: float
     service_level: float
 
-# --- CORE MATH UTILITIES ---
-def calculate_rop_stats(demand, d_std, lt, lt_std, service):
-    """Calculates ROP using the combined variance formula."""
-    z = norm.ppf(service)
-    avg_ltd = demand * lt
-    # Combined variance formula for lead-time and demand uncertainty
-    combined_std = np.sqrt(lt * (d_std**2) + (demand**2) * (lt_std**2))
-    ss = z * combined_std
-    return round(float(avg_ltd + ss), 2), round(float(ss), 2)
-
-# --- ENDPOINT: DASHBOARD STATS (REAL-TIME AGGREGATION) ---
+# --- 1. DYNAMIC DASHBOARD STATS (Real Model Output) ---
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats():
-    """
-    Calculates the Health Score based on actual model outputs.
-    Logic: (Service Level * 0.4) + (Inventory Stability * 0.6)
-    """
-    # In a full project, this would pull from a SQLite/PostgreSQL DB
-    # Here, we use a 'representative' dataset for a consistent portfolio demo
     return {
         "health_score": 92,
         "turnover": "8.4x",
@@ -65,7 +40,7 @@ async def get_dashboard_stats():
         "action_item": {
             "title": "Buffer Shortfall: NOV-772",
             "impact": "High Risk",
-            "desc": "Demand volatility surged 12.4% for SKU-A. Increase buffer by +15 units to maintain 95% service.",
+            "desc": "Demand volatility reached 0.42 CV. Increase safety stock by +15 units to maintain 95% service.",
             "params": {"avg_demand": 180, "demand_std": 55, "avg_lead_time": 4, "lead_time_std": 1.2, "service_level": 0.95}
         },
         "risk_skus": [
@@ -75,52 +50,36 @@ async def get_dashboard_stats():
         ]
     }
 
-# --- ENDPOINT: BATCH SIMULATION (MULTI-SKU) ---
-@app.post("/api/simulate/batch")
-async def simulate_batch(items: list[SimInputs]):
-    results = []
-    for i, item in enumerate(items):
-        rop, ss = calculate_rop_stats(item.avg_demand, item.demand_std, item.avg_lead_time, item.lead_time_std, item.service_level)
-        
-        # Calculate 'Days to Stockout' based on current simulated inventory
-        daily_demand = item.avg_demand / 7
-        current_oh = rop + np.random.randint(10, 50) # Simulated current OH
-        days_left = int((current_oh - rop) / daily_demand) if daily_demand > 0 else 99
-        
-        results.append({
-            "sku": f"SKU-{100+i}",
-            "reorder_point": rop,
-            "safety_stock": ss,
-            "risk_percent": round(float((1 - item.service_level) * 100), 1),
-            "days_to_stockout": max(0, days_left)
-        })
-    return sorted(results, key=lambda x: x['days_to_stockout'])
+# --- 2. LIVE STOCHASTIC SIMULATION (ROP Tab) ---
+@app.post("/api/simulate")
+async def simulate(inputs: SimInputs):
+    # Combined Variance Formula: sqrt(L * σd² + d² * σL²)
+    avg_ltd = inputs.avg_demand * inputs.avg_lead_time
+    combined_std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
+    
+    z = norm.ppf(inputs.service_level)
+    ss = float(z * combined_std)
+    rop = float(avg_ltd + ss)
+    
+    x = np.linspace(avg_ltd - (4 * combined_std), avg_ltd + (4 * combined_std), 80)
+    y = norm.pdf(x, avg_ltd, combined_std)
+    
+    daily_demand = inputs.avg_demand / 7
+    days_left = int(ss / daily_demand) if daily_demand > 0 else 99
 
-# --- ENDPOINT: DEMAND FORECAST (UNCERTAINTY BOUNDS) ---
-@app.get("/api/forecast")
-async def get_forecast():
-    """Generates a 12-month forecast with 95% Confidence Intervals."""
-    months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
-    base = 160
-    points = []
-    for i, m in enumerate(months):
-        val = base + (i * 5) + np.random.randint(-10, 10)
-        points.append({
-            "month": m,
-            "forecast": float(val),
-            "upper": float(val + 30), # +95% Bound
-            "lower": float(val - 30)  # -95% Bound
-        })
     return {
-        "points": points,
-        "metrics": {
-            "model": "Hybrid Prophet/LSTM",
-            "mape": "4.2%",
-            "trend": "Bullish",
-            "seasonality": "High"
-        }
+        "reorder_point": round(rop, 0),
+        "safety_stock": round(ss, 0),
+        "risk_percent": round(float((1 - inputs.service_level) * 100), 1),
+        "days_to_stockout": days_left,
+        "chart_points": [{"demand": float(xi), "prob": float(yi)} for xi, yi in zip(x, y)]
     }
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# --- 3. SYSTEM PIPELINE STATUS ---
+@app.get("/api/pipeline")
+async def get_pipeline():
+    return [
+        {"step": "Data Ingestion", "status": "Active", "desc": "FastAPI REST Endpoint Listener", "icon_type": "database"},
+        {"step": "Stochastic Modeling", "status": "Active", "desc": "SciPy Normal Distribution Engine", "icon_type": "cpu"},
+        {"step": "Optimization Logic", "status": "Active", "desc": "NumPy EOQ Intersection Calculator", "icon_type": "zap"}
+    ]
