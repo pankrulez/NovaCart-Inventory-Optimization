@@ -28,7 +28,7 @@ class SimInputs(BaseModel):
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
-    # Calculations
+    # Mathematics
     avg_ltd = inputs.avg_demand * inputs.avg_lead_time
     combined_std = np.sqrt(
         inputs.avg_lead_time * (inputs.demand_std**2) + 
@@ -40,11 +40,11 @@ async def simulate(inputs: SimInputs):
     rop = float(avg_ltd + ss)
     risk = float((1 - inputs.service_level) * 100)
     
-    # Points
+    # Points for the curve
     x = np.linspace(avg_ltd - (4 * combined_std), avg_ltd + (4 * combined_std), 80)
     y = norm.pdf(x, avg_ltd, combined_std)
     
-    # Flat return structure
+    # We return a FLAT object
     return {
         "safety_stock": round(ss, 2),
         "reorder_point": round(rop, 2),
