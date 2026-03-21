@@ -1,12 +1,11 @@
 import os
+import io
 import numpy as np
-from fastapi import FastAPI, HTTPException
+import pandas as pd
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.stats import norm
-import pandas as pd
-import io
-from fastapi import UploadFile, File
 
 app = FastAPI()
 
@@ -36,7 +35,8 @@ class OptimizeInputs(BaseModel):
     unit_cost: float
     holding_rate: float = 0.25
 
-# --- STOCHASTIC ENDPOINT ---
+# --- ENDPOINTS ---
+
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
     avg_ltd = inputs.avg_demand * inputs.avg_lead_time
@@ -53,60 +53,46 @@ async def simulate(inputs: SimInputs):
         "chart_points": [{"demand": float(xi), "prob": float(yi)} for xi, yi in zip(x, y)]
     }
 
-# --- EOQ ENDPOINT (THE ONE FIXING THE 404) ---
 @app.post("/api/optimize")
-async def optimize_inventory(inputs: OptimizeInputs):
-    try:
-        D = inputs.annual_demand
-        S = inputs.ordering_cost
-        H = inputs.unit_cost * inputs.holding_rate
-        eoq = np.sqrt((2 * D * S) / H)
-        q_range = np.linspace(max(10, eoq * 0.2), eoq * 2.5, 40)
-        cost_points = []
-        for q in q_range:
-            oc = (D / q) * S
-            hc = (q / 2) * H
-            cost_points.append({"qty": round(float(q), 0), "order_cost": round(oc, 2), "hold_cost": round(hc, 2), "total_cost": round(oc + hc, 2)})
-        return {
-            "eoq": round(float(eoq), 0),
-            "annual_orders": round(float(D / eoq), 1),
-            "min_cost": round(float((D / eoq) * S + (eoq / 2) * H), 2),
-            "cost_points": cost_points
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
+async def optimize(inputs: OptimizeInputs):
+    D, S, H = inputs.annual_demand, inputs.ordering_cost, inputs.unit_cost * inputs.holding_rate
+    eoq = np.sqrt((2 * D * S) / H)
+    q_range = np.linspace(max(10, eoq * 0.2), eoq * 2.5, 40)
+    cost_points = [{"qty": round(float(q), 0), "order_cost": round((D/q)*S, 2), "hold_cost": round((q/2)*H, 2), "total_cost": round((D/q)*S + (q/2)*H, 2)} for q in q_range]
+    return {"eoq": round(float(eoq), 0), "annual_orders": round(float(D/eoq), 1), "min_cost": round(float((D/eoq)*S + (eoq/2)*H), 2), "cost_points": cost_points}
+
 @app.post("/api/datalab/upload")
 async def upload_csv(file: UploadFile = File(...)):
     try:
-        # Read the CSV into a DataFrame
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
         
-        # Required columns: SKU, demand, demand_std, lead_time, lead_time_std, cost, order_cost
-        # Let's calculate ROP and EOQ for every row
-        results = []
-        for _, row in df.iterrows():
-            # Stochastic ROP (95% Service Level)
-            avg_ltd = row['demand'] * row['lead_time']
-            combined_std = np.sqrt(row['lead_time'] * (row['demand_std']**2) + (row['demand']**2) * (row['lead_time_std']**2))
-            rop = avg_ltd + (1.645 * combined_std)
-            
-            # EOQ
-            H = row['cost'] * 0.25
-            eoq = np.sqrt((2 * row['demand'] * 52 * row['order_cost']) / H)
-            
-            results.append({
-                "SKU": row['SKU'],
-                "Recommended_ROP": round(rop, 0),
-                "Recommended_EOQ": round(eoq, 0),
-                "Annual_Savings_Est": round((row['demand'] * 52 * 0.1), 2) # Mock logic
-            })
-            
-        return results
+        # Validation: Check if required columns exist
+        required = {'demand', 'demand_std', 'lead_time'}
+        if not required.issubset(df.columns):
+            raise HTTPException(status_code=400, detail=f"Missing columns. Required: {required}")
+
+        # Summary Metrics
+        total_skus = len(df)
+        avg_lt = f"{round(df['lead_time'].mean(), 1)} Weeks"
+        
+        # Calculate CV (Coefficient of Variation)
+        cv_series = df['demand_std'] / df['demand']
+        avg_cv = f"{round(cv_series.mean() * 100, 1)}%"
+        
+        # Risk Segmentation: SKUs with CV > 0.3 are considered "High Volatility"
+        at_risk = int((cv_series > 0.3).sum())
+        
+        return {
+            "skus": total_skus,
+            "avg_lead": avg_lt,
+            "variance": avg_cv,
+            "at_risk": at_risk,
+            "filename": file.filename
+        }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/")
 async def health():
-    return {"status": "Live", "endpoints": ["/api/simulate", "/api/optimize"]}
+    return {"status": "Live", "endpoints": ["/api/simulate", "/api/optimize", "/api/datalab/upload"]}
