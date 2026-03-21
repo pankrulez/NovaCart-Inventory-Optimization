@@ -67,18 +67,23 @@ async def upload_csv(file: UploadFile = File(...)):
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
         
-        # Calculate ROP/EOQ for the whole batch
+        # 1. Batch Calculations
         df['cv'] = df['demand_std'] / df['demand']
+        # Stochastic ROP calculation for every row
         df['rop'] = (df['demand'] * df['lead_time']) + (1.645 * np.sqrt(df['lead_time']*df['demand_std']**2 + df['demand']**2*df['lead_time_std']**2))
         
-        # Create bins for the Risk Distribution Chart
-        risk_bins = pd.cut(df['cv'], bins=[0, 0.1, 0.2, 0.3, 1.0], labels=['Low', 'Medium', 'High', 'Critical'])
-        risk_dist = risk_bins.value_counts().reset_index()
+        # 2. Risk Segmentation for Bar Chart
+        # Categorize products by their volatility (CV)
+        bins = [0, 0.1, 0.2, 0.3, float('inf')]
+        labels = ['Low', 'Medium', 'High', 'Critical']
+        df['risk_level'] = pd.cut(df['cv'], bins=bins, labels=labels)
+        risk_dist = df['risk_level'].value_counts().reindex(labels).reset_index()
         risk_dist.columns = ['level', 'count']
 
-        # Scatter plot data (subset to first 50 items to keep UI snappy)
+        # 3. Scatter Plot Data (Subset to 50 for performance)
         scatter_data = df[['SKU', 'demand', 'lead_time', 'rop']].head(50).to_dict(orient='records')
 
+        # 4. Final Aggregated Response
         return {
             "skus": len(df),
             "avg_lead": f"{round(df['lead_time'].mean(), 1)} Weeks",
