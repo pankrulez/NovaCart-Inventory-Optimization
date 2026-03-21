@@ -24,12 +24,13 @@ export default function HomeSection() {
         <div className="relative z-10 max-w-3xl space-y-4">
           <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">NovaCart: Adaptive Inventory Engine</h2>
           <p className="text-slate-500 font-medium leading-relaxed">
-            An enterprise-grade supply chain solution utilizing **Stochastic Modeling** and **Economic Order Quantity (EOQ)** optimization. NovaCart analyzes demand volatility and lead-time variance to minimize holding costs 
-            while maintaining a 95%+ service level across global catalogs.
+            An enterprise-grade supply chain solution utilizing <strong className="text-slate-900 font-black">Stochastic Modeling</strong> and <strong className="text-slate-900 font-black">Economic Order Quantity (EOQ)</strong> optimization. 
+            NovaCart analyzes demand volatility and lead-time variance to minimize holding costs while maintaining a 
+            <strong className="text-slate-900 font-black"> 95%+ service level</strong> across global catalogs.
           </p>
           <div className="flex gap-4">
-            <span className="bg-indigo-50 text-indigo-600 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-indigo-100">Statistical Simulation</span>
-            <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-emerald-100">Real-time Optimization</span>
+            <span className="bg-indigo-50 text-indigo-600 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-indigo-100 shadow-sm">Statistical Simulation</span>
+            <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-emerald-100 shadow-sm">Real-time Optimization</span>
           </div>
         </div>
       </div>
@@ -76,8 +77,8 @@ export default function HomeSection() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4">
-               <HealthMetric label="Service Level" val="96.4%" color="bg-indigo-500" tooltip="Probability of fulfilling all customer demand." />
-               <HealthMetric label="Capital Efficiency" val="88.1%" color="bg-emerald-500" tooltip="Balance between inventory investment and profit." />
+               <HealthMetric label="Service Level" val="96.4%" color="bg-indigo-500" tooltip="Probability of fulfilling all customer demand based on safety stock." />
+               <HealthMetric label="Capital Efficiency" val="88.1%" color="bg-emerald-500" tooltip="Balance between inventory investment and operational cost." />
             </div>
           </div>
         </div>
@@ -90,25 +91,25 @@ export default function HomeSection() {
           
           <InsightCard 
             title="Stockout Risk" 
-            desc="Demand volatility increased 12.4% across high-margin SKUs. The ROP engine suggests increasing safety buffer."
+            desc="Demand volatility increased 12.4% across high-margin SKUs. The Stochastic engine suggests increasing safety buffer."
             stat="+12.4%" 
             isWarning={true}
           />
 
           <InsightCard 
             title="Revenue Concentration" 
-            desc="Top 5 items drive 60% of cashflow. Focus replenishment logic on these core SKUs to maintain momentum."
-            stat="Concentrated" 
+            desc="Top 5 items drive 60% of cashflow. Focus EOQ replenishment logic on these core SKUs to maintain momentum."
+            stat="High" 
             isWarning={false}
           />
 
           {/* Mini Demand Chart */}
-          <div className="bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/30 flex items-center justify-between group">
+          <div className="bg-white border-2 border-slate-50 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/30 flex items-center justify-between group transition-all hover:border-slate-100">
              <div className="space-y-1">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Demand Pulse</p>
                 <h4 className="text-2xl font-black text-slate-900 tracking-tighter italic">Active Scaling</h4>
              </div>
-             <div className="h-16 w-32 grayscale group-hover:grayscale-0 transition-all duration-500">
+             <div className="h-16 w-32 grayscale group-hover:grayscale-0 transition-all duration-700">
                 <ResponsiveContainer width="100%" height="100%">
                    <AreaChart data={trendData}>
                       <Area type="monotone" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} strokeWidth={3} />
@@ -137,7 +138,7 @@ function KPIItem({ title, val, change, up, icon }: any) {
   return (
     <div className="bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-lg hover:shadow-xl transition-all group">
       <div className="flex justify-between items-center mb-6">
-        <div className="bg-slate-50 p-3 rounded-2xl text-slate-900 group-hover:bg-slate-900 group-hover:text-indigo-400 transition-all">
+        <div className="bg-slate-50 p-3 rounded-2xl text-slate-900 group-hover:bg-slate-900 group-hover:text-indigo-400 transition-all shadow-sm">
           {icon}
         </div>
         <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg ${up ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
@@ -159,11 +160,10 @@ function HealthMetric({ label, val, color, tooltip }: any) {
       <div className="flex items-center gap-4">
         <span className="text-xl font-black text-white italic">{val}</span>
         <div className="flex-1 h-1 bg-slate-800 rounded-full overflow-hidden">
-           <div className={`h-full ${color}`} style={{ width: val }} />
+           <div className={`h-full ${color} transition-all duration-1000`} style={{ width: val }} />
         </div>
       </div>
-      {/* Mini Tooltip */}
-      <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-slate-800 text-[9px] text-slate-300 rounded-lg opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none border border-slate-700">
+      <div className="absolute bottom-full left-0 mb-2 w-48 p-3 bg-slate-800 text-[9px] text-slate-300 rounded-xl opacity-0 group-hover/tip:opacity-100 transition-opacity pointer-events-none border border-slate-700 shadow-2xl z-50">
         {tooltip}
       </div>
     </div>
