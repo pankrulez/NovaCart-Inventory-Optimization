@@ -4,6 +4,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from scipy.stats import norm
+import pandas as pd
+import io
+from fastapi import UploadFile, File
 
 app = FastAPI()
 
@@ -72,6 +75,37 @@ async def optimize_inventory(inputs: OptimizeInputs):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/api/datalab/upload")
+async def upload_csv(file: UploadFile = File(...)):
+    try:
+        # Read the CSV into a DataFrame
+        contents = await file.read()
+        df = pd.read_csv(io.BytesIO(contents))
+        
+        # Required columns: SKU, demand, demand_std, lead_time, lead_time_std, cost, order_cost
+        # Let's calculate ROP and EOQ for every row
+        results = []
+        for _, row in df.iterrows():
+            # Stochastic ROP (95% Service Level)
+            avg_ltd = row['demand'] * row['lead_time']
+            combined_std = np.sqrt(row['lead_time'] * (row['demand_std']**2) + (row['demand']**2) * (row['lead_time_std']**2))
+            rop = avg_ltd + (1.645 * combined_std)
+            
+            # EOQ
+            H = row['cost'] * 0.25
+            eoq = np.sqrt((2 * row['demand'] * 52 * row['order_cost']) / H)
+            
+            results.append({
+                "SKU": row['SKU'],
+                "Recommended_ROP": round(rop, 0),
+                "Recommended_EOQ": round(eoq, 0),
+                "Annual_Savings_Est": round((row['demand'] * 52 * 0.1), 2) # Mock logic
+            })
+            
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
 
 @app.get("/")
 async def health():
