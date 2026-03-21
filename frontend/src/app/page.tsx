@@ -70,6 +70,7 @@ export default function NovaCartModular() {
           <NavBtn id="optimizer" active={activeTab} label="Live ROP" icon={<Activity size={14}/>} onClick={setActiveTab} />
           <NavBtn id="optimization" active={activeTab} label="EOQ Logic" icon={<PieChart size={14}/>} onClick={setActiveTab} />
           <NavBtn id="data-lab" active={activeTab} label="Data Lab" icon={<Database size={14}/>} onClick={setActiveTab} />
+          <NavBtn id="pipeline" active={activeTab} label="Pipeline" icon={<Zap size={14}/>} onClick={setActiveTab} />
           <NavBtn id="about" active={activeTab} label="Profile" icon={<User size={14}/>} onClick={setActiveTab} />
         </div>
         
@@ -97,6 +98,8 @@ export default function NovaCartModular() {
         {activeTab === 'optimization' && <OptimizationSection />}
         
         {activeTab === 'data-lab' && <DataLabSection />}
+
+        {activeTab === 'pipeline' && <PipelineSection />}
         
         {activeTab === 'about' && <AboutSection />}
       </main>
