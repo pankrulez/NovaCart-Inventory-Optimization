@@ -70,9 +70,9 @@ export default function NovaCartModular() {
         {/* Navigation Tabs */}
         <div className="hidden md:flex bg-slate-100 p-1.5 rounded-2xl gap-1 border border-slate-200/50 shadow-inner">
           <NavBtn id="home" active={activeTab} label="Overview" icon={<Layout size={14}/>} onClick={setActiveTab} />
-          <NavBtn id="forecast" active={activeTab} label="Forecast" icon={<TrendingUp size={14}/>} onClick={setActiveTab} />
           <NavBtn id="optimizer" active={activeTab} label="Live ROP" icon={<Activity size={14}/>} onClick={setActiveTab} />
           <NavBtn id="optimization" active={activeTab} label="EOQ Logic" icon={<PieChart size={14}/>} onClick={setActiveTab} />
+          <NavBtn id="forecast" active={activeTab} label="Forecast" icon={<TrendingUp size={14}/>} onClick={setActiveTab} />
           <NavBtn id="data-lab" active={activeTab} label="Data Lab" icon={<Database size={14}/>} onClick={setActiveTab} />
           <NavBtn id="pipeline" active={activeTab} label="Pipeline" icon={<Zap size={14}/>} onClick={setActiveTab} />
           <NavBtn id="about" active={activeTab} label="Profile" icon={<User size={14}/>} onClick={setActiveTab} />
@@ -88,8 +88,6 @@ export default function NovaCartModular() {
       {/* --- MAIN CONTENT AREA --- */}
       <main className="max-w-6xl mx-auto py-12 px-8">
         {activeTab === 'home' && <HomeSection />}
-
-        {activeTab === 'forecast' && <DemandForecastSection />}
         
         {activeTab === 'optimizer' && (
           <OptimizerSection 
@@ -102,6 +100,8 @@ export default function NovaCartModular() {
         )}
         
         {activeTab === 'optimization' && <OptimizationSection />}
+
+        {activeTab === 'forecast' && <DemandForecastSection />}
         
         {activeTab === 'data-lab' && (
           <DataLabSection 
