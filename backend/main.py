@@ -11,8 +11,19 @@ app = FastAPI(title="NovaCart Stochastic Engine")
 
 # --- CORS & SECURITY ---
 # Update origins to match your Vercel deployment URL
-origins = ["http://localhost:3000", "https://novacart-inventory-optimization.vercel.app"]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["*"], allow_headers=["*"])
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://inventory-optimization-beryl.vercel.app", # <--- ADD THIS EXACT URL
+    "https://novacart-inventory-optimization.vercel.app" 
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins, # This tells FastAPI to allow your Vercel app
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- DATA MODELS ---
 class SimInputs(BaseModel):
