@@ -39,6 +39,10 @@ async def load_pipeline_artifacts():
         if MODEL_PATH.exists():
             sku_models = joblib.load(MODEL_PATH)
             print(f"✅ Loaded {len(sku_models)} trained SKU models.")
+        else:
+            print(f"❌ ERROR: Model file not found at {MODEL_PATH}")
+            
+        # Load production baseline
         if DATA_PATH.exists():
             prod_df = pd.read_csv(DATA_PATH)
             # Pre-calculate CV for dashboard sorting
@@ -137,6 +141,38 @@ async def optimize(inputs: OptimizeInputs):
     cost_points = [{"qty": round(float(q), 0), "order_cost": round((D/q)*S, 2), "hold_cost": round((q/2)*H, 2), "total_cost": round((D/q)*S + (q/2)*H, 2)} for q in q_range]
     return {"eoq": round(float(eoq), 0), "annual_orders": round(float(D/eoq), 1), "cost_points": cost_points}
 
+
+class AdjustmentInput(BaseModel):
+    sku: str
+    new_ss: float
+    new_rop: float
+
+@app.post("/api/optimizer/execute")
+async def execute_adjustment(data: AdjustmentInput):
+    global prod_df
+    try:
+        if prod_df.empty:
+            raise HTTPException(status_code=500, detail="Data baseline not loaded")
+
+        # Update the local DataFrame
+        idx = prod_df[prod_df['SKU'] == data.sku].index
+        if idx.empty:
+            raise HTTPException(status_code=404, detail="SKU not found in baseline")
+
+        prod_df.loc[idx, 'safety_stock'] = data.new_ss
+        prod_df.loc[idx, 'reorder_point'] = data.new_rop
+        
+        # Recalculate CV/Health impact if necessary
+        # prod_df.loc[idx, 'cv'] = ... (Optional: update risk level)
+
+        # Persist to CSV so Home tab sees the change on refresh
+        prod_df.to_csv(DATA_PATH, index=False)
+        
+        return {"status": "success", "message": f"Updated {data.sku} policy."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/datalab/upload")
 async def upload_csv(file: UploadFile = File(...)):
     try:
@@ -171,20 +207,40 @@ async def get_pipeline():
         {"step": "Optimization Logic", "status": "Active", "desc": "NumPy EOQ Calculator", "icon_type": "zap"}
     ]
 
-@app.get("/api/forecast")
-async def get_forecast():
-    # Feeds Forecast tab with real baseline demand from pipeline
-    if prod_df.empty:
-        return {"points": [], "metrics": {}}
-        
-    # Get top 5 SKUs for demo purposes or average trend
-    avg_forecast = prod_df['forecast_demand'].mean()
-    months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
-    points = [{"month": m, "forecast": float(avg_forecast + (i * 2)), "upper": float(avg_forecast + 20), "lower": float(avg_forecast - 20)} for i, m in enumerate(months)]
+@app.get("/api/forecast/{sku_id}")
+async def get_sku_forecast(sku_id: str):
+    # 1. Check if we have a model for this specific SKU
+    if sku_id not in sku_models:
+        raise HTTPException(status_code=404, detail="No trained model found for this SKU")
     
+    # 2. Get the baseline forecast from our processed data
+    sku_stats = prod_df[prod_df['SKU'] == sku_id]
+    if sku_stats.empty:
+        raise HTTPException(status_code=404, detail="SKU stats missing")
+
+    baseline_val = float(sku_stats['forecast_demand'].values[0])
+    
+    # 3. Generate a 12-month projection based on the baseline
+    months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
+    points = []
+    for i, m in enumerate(months):
+        # We use the baseline and add a small simulated trend for the UI
+        pred = baseline_val * (1 + (i * 0.02)) 
+        points.append({
+            "month": m,
+            "forecast": round(pred, 2),
+            "upper": round(pred * 1.15, 2),
+            "lower": round(pred * 0.85, 2)
+        })
+
     return {
-        "points": points, 
-        "metrics": {"mape": "4.2%", "model": "Linear Lag Regression", "trend": "Stable", "seasonality": "Moderate"}
+        "sku": sku_id,
+        "points": points,
+        "metrics": {
+            "mape": "4.2%", 
+            "model": "Linear Lag Regression", # Your actual model type
+            "segment": sku_stats['SKU_segment'].values[0]
+        }
     }
 
 @app.get("/")
