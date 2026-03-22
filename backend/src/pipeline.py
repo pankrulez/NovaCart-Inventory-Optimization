@@ -1,102 +1,80 @@
 import pandas as pd
-import joblib
 import numpy as np
 from pathlib import Path
-
-# Import your existing logic using relative imports
 from .utils import load_raw_data, DATA_PATH_PROCESSED
-from .forecasting import train_lag_regression, forecast_with_lag_model
 from .inventory import apply_inventory_policy
-
-# Define paths
-MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "backend" / "models"
-MODEL_PATH.mkdir(parents=True, exist_ok=True)
+from .forecasting import train_lag_regression, forecast_with_lag_model
 
 def run_production_pipeline():
-    print("🚀 Starting NovaCart Production Pipeline...")
-    
-    # 1. Load Raw Data (Using your utils.py function)
+    # Load raw data using your utils
     sales, inventory, products, suppliers = load_raw_data()
     
-    # --- DATA PREPARATION & CLEANING ---
-    # Fix naming: Convert everything to a standard 'SKU' for internal logic
+    # Standardize SKU column names
     for df in [sales, inventory, products]:
         if 'sku_id' in df.columns:
             df.rename(columns={'sku_id': 'SKU'}, inplace=True)
-            
-    # Convert dates and aggregate sales to Weekly Demand
+
+    # 1. Weekly Aggregation
     sales['date'] = pd.to_datetime(sales['date'])
     sales['week'] = sales['date'].dt.to_period('W').apply(lambda r: r.start_time)
-    
     weekly_sales = sales.groupby(['SKU', 'week'])['units_sold'].sum().reset_index()
     
-    # Calculate Weekly Stats (Required by inventory.py)
     stats_df = weekly_sales.groupby('SKU').agg(
         avg_weekly_demand=('units_sold', 'mean'),
         std_weekly_demand=('units_sold', 'std')
     ).reset_index().fillna(0)
 
-    # 2. ABC SEGMENTATION (Required by inventory.py)
-    # Calculate revenue per SKU to determine ABC segments
+    # 2. ABC Segmentation Logic
     revenue_df = sales.groupby('SKU')['gross_revenue'].sum().reset_index()
     revenue_df = revenue_df.sort_values(by='gross_revenue', ascending=False)
     revenue_df['cum_res'] = revenue_df['gross_revenue'].cumsum() / revenue_df['gross_revenue'].sum()
     revenue_df['SKU_segment'] = revenue_df['cum_res'].apply(lambda x: 'A' if x <= 0.7 else ('B' if x <= 0.9 else 'C'))
 
-    # 3. MERGE LEAD TIMES (From suppliers_master.csv)
-    # Mapping 'lead_time_variability' to 'std_lead_time'
-    suppliers_clean = suppliers.rename(columns={
-        'avg_lead_time': 'avg_lead_time', 
-        'lead_time_variability': 'std_lead_time'
-    })
-    
-    # Build the master processing dataframe
+    # 3. Master Merge: CRITICAL - Include current_stock and cost_price
+    # This provides the "Real Data" context for the Optimizer
     master_df = stats_df.merge(revenue_df[['SKU', 'SKU_segment']], on='SKU')
-    master_df = master_df.merge(products[['SKU', 'supplier_id']], on='SKU')
-    master_df = master_df.merge(suppliers_clean[['supplier_id', 'avg_lead_time', 'std_lead_time']], on='supplier_id')
+    master_df = master_df.merge(products[['SKU', 'supplier_id', 'cost_price']], on='SKU')
+    master_df = master_df.merge(inventory[['SKU', 'current_stock']], on='SKU')
+    master_df = master_df.merge(suppliers.rename(columns={
+        'avg_lead_time': 'avg_lt', 
+        'lead_time_variability': 'std_lt'
+    }), on='supplier_id')
 
-    # 4. TRAIN FORECASTING MODELS & APPLY POLICY
-    trained_models = {}
     baseline_records = []
-
     for sku in master_df['SKU'].unique():
+        sku_data = master_df[master_df['SKU'] == sku].iloc[0]
         sku_series = weekly_sales[weekly_sales['SKU'] == sku].sort_values('week')['units_sold']
         
-        # Train if enough history exists
-        if len(sku_series) > 6:
-            model, features = train_lag_regression(sku_series)
-            trained_models[sku] = {"model": model, "features": features}
-            forecast_val = forecast_with_lag_model(model, features, sku_series)
-        else:
-            forecast_val = sku_series.mean()
+        # Real Model Forecast
+        forecast_val = forecast_with_lag_model(*train_lag_regression(sku_series), sku_series) if len(sku_series) > 6 else sku_series.mean()
 
-        # Apply Inventory Policy logic from your inventory.py
-        sku_row = master_df[master_df['SKU'] == sku].iloc[0]
-        ss, rop = apply_inventory_policy(sku_row)
+        # Calculate Policy using your math engine
+        ss, rop = apply_inventory_policy(pd.Series({
+            'avg_weekly_demand': sku_data['avg_weekly_demand'],
+            'std_weekly_demand': sku_data['std_weekly_demand'],
+            'avg_lead_time': sku_data['avg_lt'],
+            'std_lead_time': sku_data['std_lt'],
+            'SKU_segment': sku_data['SKU_segment']
+        }))
 
         baseline_records.append({
             "SKU": sku,
             "forecast_demand": round(forecast_val, 2),
-            "safety_stock": round(ss, 0),
-            "reorder_point": round(rop, 0),
-            "avg_weekly_demand": round(sku_row['avg_weekly_demand'], 2),
-            "std_weekly_demand": round(sku_row['std_weekly_demand'], 2),
-            "SKU_segment": sku_row['SKU_segment'],
-            "avg_lead_time": sku_row['avg_lead_time']
+            "safety_stock": int(ss),
+            "reorder_point": int(rop),
+            "avg_weekly_demand": round(sku_data['avg_weekly_demand'], 2),
+            "std_weekly_demand": round(sku_data['std_weekly_demand'], 2),
+            "SKU_segment": sku_data['SKU_segment'],
+            "avg_lead_time": sku_data['avg_lt'],
+            "std_lead_time": sku_data['std_lt'],
+            "current_stock": int(sku_data['current_stock']), # Real Data
+            "cost_price": float(sku_data['cost_price']),      # Real Data
+            "holding_cost": round(ss * (sku_data['cost_price'] * 0.25), 2)
         })
 
-    # 5. SAVE ARTIFACTS
-    joblib.dump(trained_models, MODEL_PATH / "sku_models.pkl")
-    
-    production_baseline = pd.DataFrame(baseline_records)
-    # Add extra metrics for the Dashboard Health Score
-    production_baseline['service_level'] = 0.96
-    production_baseline['holding_cost'] = production_baseline['safety_stock'] * 2.5
-    
-    production_baseline.to_csv(DATA_PATH_PROCESSED / "production_baseline.csv", index=False)
-    
-    print(f"✅ Pipeline Complete! Processed {len(production_baseline)} SKUs.")
-    print(f"📍 Artifacts saved in {DATA_PATH_PROCESSED}")
+    # Save artifact
+    pd.DataFrame(baseline_records).to_csv(DATA_PATH_PROCESSED / "production_baseline.csv", index=False)
+    print(f"✅ Pipeline Success: Created baseline for {len(baseline_records)} SKUs with real inventory levels.")
 
 if __name__ == "__main__":
     run_production_pipeline()
