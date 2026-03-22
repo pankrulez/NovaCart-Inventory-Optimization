@@ -14,9 +14,10 @@ app = FastAPI(title="NovaCart Production Engine")
 # --- PATH RESOLUTION ---
 # Navigates backend/ -> backend/models/sku_models.pkl
 BASE_DIR = Path(__file__).resolve().parent
+
+# Artifact Paths
 MODEL_PATH = BASE_DIR / "models" / "sku_models.pkl"
-# Navigates backend/ -> data/processed/production_baseline.csv
-DATA_PATH = BASE_DIR.parent / "data" / "processed" / "production_baseline.csv"
+DATA_PATH = BASE_DIR / "data" / "processed" / "production_baseline.csv"
 
 # --- FIXED CORS ---
 app.add_middleware(
@@ -43,6 +44,9 @@ async def load_pipeline_artifacts():
             # Pre-calculate CV for dashboard sorting
             prod_df['cv'] = prod_df['std_weekly_demand'] / prod_df['avg_weekly_demand']
             print(f"✅ Loaded production baseline: {len(prod_df)} records.")
+        else:
+            print(f"❌ ERROR: File not found at {DATA_PATH}")
+            
     except Exception as e:
         print(f"❌ Startup Error: {e}")
 
