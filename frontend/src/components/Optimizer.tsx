@@ -27,7 +27,14 @@ export default function OptimizerSection({ initialParams }: any) {
       const res = await fetch(`${API_URL}/api/simulate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
+        body: JSON.stringify({
+        sku: params.sku, // MUST match the backend Pydantic model
+        avg_demand: params.avg_demand,
+        demand_std: params.demand_std,
+        avg_lead_time: params.avg_lead_time,
+        lead_time_std: params.lead_time_std,
+        service_level: params.service_level
+      }),
       });
       const data = await res.json();
       setResults(data);

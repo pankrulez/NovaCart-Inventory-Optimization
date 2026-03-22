@@ -120,62 +120,68 @@ async def get_real_stats():
 
 @app.post("/api/simulate")
 async def simulate(inputs: SimInputs):
-    # 1. FETCH REAL DATA FROM PRODUCTION BASELINE
-    sku_row = prod_df[prod_df['SKU'] == inputs.sku]
-    if sku_row.empty:
-        raise HTTPException(status_code=404, detail=f"SKU {inputs.sku} not found in real data.")
+    try:
+        # 1. FETCH REAL DATA FROM PRODUCTION BASELINE
+        sku_row = prod_df[prod_df['SKU'] == inputs.sku]
+        if sku_row.empty:
+            raise HTTPException(status_code=404, detail=f"SKU {inputs.sku} not found in real data.")
 
-    # Real data points from your CSVs
-    current_stock = float(sku_row['current_stock'].values[0])
-    unit_cost = float(sku_row['cost_price'].values[0])
+        # Real data points from your CSVs
+        current_stock = float(sku_row['current_stock'].values[0])
+        unit_cost = float(sku_row['cost_price'].values[0])
 
-    # 2. STOCHASTIC CALCULATIONS (Using inventory.py logic)
-    z = norm.ppf(inputs.service_level)
-    avg_ltd = inputs.avg_demand * inputs.avg_lead_time
-    # Combined uncertainty formula
-    combined_std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
-    ss = z * combined_std
-    rop = avg_ltd + ss
+        # 2. STOCHASTIC CALCULATIONS (Using inventory.py logic)
+        z = norm.ppf(inputs.service_level)
+        avg_ltd = inputs.avg_demand * inputs.avg_lead_time
+        # Combined uncertainty formula
+        combined_std = np.sqrt(inputs.avg_lead_time * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
+        ss = z * combined_std
+        rop = avg_ltd + ss
 
-    # 3. DAYS TO STOCKOUT (Real-time burn rate)
-    daily_demand = inputs.avg_demand / 7
-    days_to_stockout = round(current_stock / daily_demand, 1) if daily_demand > 0 else 999
+        # 3. DAYS TO STOCKOUT (Real-time burn rate)
+        daily_demand = inputs.avg_demand / 7
+        days_to_stockout = round(current_stock / daily_demand, 1) if daily_demand > 0 else 999
 
-    # 4. URGENCY & ACTION PROTOCOL
-    lt_days = inputs.avg_lead_time * 7
-    if days_to_stockout <= lt_days:
-        urgency, protocol = "CRITICAL", "Expedite Inbound: Stockout likely before delivery."
-    elif days_to_stockout <= lt_days + 5:
-        urgency, protocol = "HIGH", "Prioritize Receiving: Buffer is dangerously low."
-    else:
-        urgency, protocol = "NORMAL", "Standard Replenishment: Maintain current cycle."
+        # 4. URGENCY & ACTION PROTOCOL
+        lt_days = inputs.avg_lead_time * 7
+        if days_to_stockout <= lt_days:
+            urgency, protocol = "CRITICAL", "Expedite Inbound: Stockout likely before delivery."
+        elif days_to_stockout <= lt_days + 5:
+            urgency, protocol = "HIGH", "Prioritize Receiving: Buffer is dangerously low."
+        else:
+            urgency, protocol = "NORMAL", "Standard Replenishment: Maintain current cycle."
 
-    # 5. RECOMMENDED ORDER QTY (EOQ)
-    # Using real unit_cost and fixed S=$50, h=25%
-    annual_demand = inputs.avg_demand * 52
-    eoq = int(np.sqrt((2 * annual_demand * 50) / (unit_cost * 0.25)))
+        # 5. RECOMMENDED ORDER QTY (EOQ)
+        # Using real unit_cost and fixed S=$50, h=25%
+        annual_demand = inputs.avg_demand * 52
+        eoq = int(np.sqrt((2 * annual_demand * 50) / (unit_cost * 0.25)))
 
-    # 6. LEAD TIME SENSITIVITY (Optimization Insight)
-    # Benefit of reducing lead time by 20%
-    improved_lt = inputs.avg_lead_time * 0.8
-    improved_ss = z * np.sqrt(improved_lt * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
-    capital_saved = round((ss - improved_ss) * unit_cost, 2)
+        # 6. LEAD TIME SENSITIVITY (Optimization Insight)
+        # Benefit of reducing lead time by 20%
+        improved_lt = inputs.avg_lead_time * 0.8
+        improved_ss = z * np.sqrt(improved_lt * (inputs.demand_std**2) + (inputs.avg_demand**2) * (inputs.lead_time_std**2))
+        capital_saved = round((ss - improved_ss) * unit_cost, 2)
 
-    return {
-        "safety_stock": int(ss),
-        "reorder_point": int(rop),
-        "days_to_stockout": days_to_stockout,
-        "urgency_ranking": urgency,
-        "action_protocol": protocol,
-        "recommended_order_qty": eoq,
-        "lt_sensitivity": {
-            "label": "20% LT Reduction Impact",
-            "saving": f"${capital_saved}",
-            "desc": f"Reducing LT to {round(improved_lt, 1)} weeks saves inventory capital."
-        },
-        "chart_points": [{"demand": x, "prob": norm.pdf(x, avg_ltd, combined_std)} 
-                        for x in np.linspace(avg_ltd - 3*combined_std, avg_ltd + 3*combined_std, 40)]
-    }
+        return {
+            "safety_stock": int(ss),
+            "reorder_point": int(rop),
+            "days_to_stockout": days_to_stockout,
+            "urgency_ranking": urgency,
+            "action_protocol": protocol,
+            "recommended_order_qty": eoq,
+            "lt_sensitivity": {
+                "label": "20% LT Reduction Impact",
+                "saving": f"${capital_saved}",
+                "desc": f"Reducing LT to {round(improved_lt, 1)} weeks saves inventory capital."
+            },
+            "chart_points": [{"demand": x, "prob": norm.pdf(x, avg_ltd, combined_std)} 
+                            for x in np.linspace(avg_ltd - 3*combined_std, avg_ltd + 3*combined_std, 40)]
+        }
+    
+    except Exception as e:
+        # This prevents the 500 error from hiding the CORS headers
+        print(f"CRITICAL ERROR in /api/simulate: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/optimize")
 async def optimize(inputs: OptimizeInputs):
