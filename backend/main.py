@@ -180,7 +180,12 @@ async def simulate(inputs: SimInputs):
 async def get_eoq_analysis(sku_id: str, annual_demand: float):
     # 1. Fetch real unit cost from production baseline
     sku_row = prod_df[prod_df['SKU'] == sku_id]
+    if sku_row.empty:
+        raise HTTPException(status_code=404, detail="SKU not found")
+    
     unit_cost = float(sku_row['cost_price'].iloc[0]) if not sku_row.empty else 10.0
+    if unit_cost is None or np.isnan(unit_cost) or unit_cost <= 0:
+        raise HTTPException(status_code=400, detail="Invalid unit cost")
     
     # 2. Fixed Costs (Industry standards for this project)
     S = 50.0  # Ordering Cost per PO
