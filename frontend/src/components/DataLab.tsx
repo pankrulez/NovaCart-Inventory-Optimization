@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   UploadCloud, CheckCircle2, BarChart3, PieChart, RefreshCcw, 
-  Download, AlertTriangle, FileText, Database, FileSpreadsheet 
+  Download, AlertTriangle, FileText, Database, FileSpreadsheet, Info
 } from 'lucide-react';
 
 // Props: report and setReport are passed from page.tsx to persist data across tabs
@@ -58,7 +58,6 @@ export default function DataLabSection({ report, setReport }: any) {
         if (!res.ok) throw new Error("Processing failed. Check CSV format.");
         const data = await res.json();
         
-        // This updates the state in page.tsx, so it won't disappear on tab switch
         setReport(data); 
       } catch (err: any) {
         setError(err.message);
@@ -71,7 +70,7 @@ export default function DataLabSection({ report, setReport }: any) {
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-700">
       {/* --- HEADER --- */}
-      <div className="text-center mb-12 space-y-4">
+      <div className="text-center mb-10 space-y-4">
         <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Inventory Data Lab</h2>
         <p className="text-slate-500 font-medium max-w-xl mx-auto">
           Upload your product catalog to perform automated batch stochastic modeling and risk segmentation.
@@ -84,13 +83,33 @@ export default function DataLabSection({ report, setReport }: any) {
         </button>
       </div>
 
+      {/* --- NEW: DATA LAB LOGIC BRIEF --- */}
+      <div className="bg-emerald-50 border-2 border-emerald-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-emerald-900 font-black uppercase text-[10px] tracking-widest">
+            <Database size={14} /> Batch Processing Logic
+          </div>
+          <p className="text-[11px] text-emerald-800/70 leading-relaxed font-medium">
+            The Data Lab performs <strong className="text-emerald-900 font-black">Vectorized ROP/SS calculations</strong>. It maps the stochastic engine across the entire uploaded dataset to calculate Safety Stock and Reorder Points for hundreds of SKUs simultaneously using NumPy-accelerated math.
+          </p>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-emerald-900 font-black uppercase text-[10px] tracking-widest">
+            <BarChart3 size={14} /> Risk Distribution
+          </div>
+          <p className="text-[11px] text-emerald-800/70 leading-relaxed font-medium">
+            SKUs are automatically categorized into <strong className="text-emerald-900 font-black">Risk Buckets</strong> based on their Coefficient of Variation (CV). This helps identify "Long-Tail" items where demand is highly unpredictable and requires a specific buffer strategy.
+          </p>
+        </div>
+      </div>
+
       {error && (
         <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-sm font-bold flex items-center gap-3">
           <AlertTriangle size={18} /> Error: {error}
         </div>
       )}
 
-      {/* --- UPLOAD BOX (Only shows if no report exists) --- */}
+      {/* --- UPLOAD BOX --- */}
       {!report ? (
         <div className="relative group">
           <input 
@@ -122,7 +141,7 @@ export default function DataLabSection({ report, setReport }: any) {
           </div>
         </div>
       ) : (
-        /* --- REPORT VIEW (Persists across tabs) --- */
+        /* --- REPORT VIEW --- */
         <div className="grid grid-cols-12 gap-6 animate-in slide-in-from-bottom-10 duration-700">
           <div className="col-span-12 bg-slate-900 border border-slate-800 p-8 rounded-[3rem] flex flex-col md:flex-row items-center justify-between shadow-2xl gap-4">
             <div className="flex items-center gap-5">

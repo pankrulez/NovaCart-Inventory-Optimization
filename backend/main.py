@@ -221,9 +221,16 @@ async def upload_csv(file: UploadFile = File(...)):
     try:
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
-        df['cv'] = df['demand_std'] / df['demand']
-        df['rop'] = (df['demand'] * df['lead_time']) + (1.645 * np.sqrt(df['lead_time']*df['demand_std']**2 + df['demand']**2*df['lead_time_std']**2))
         
+        # REQUIRED COLUMNS: SKU, demand, demand_std, lead_time, lead_time_std
+        # Calculate Real Metrics
+        df['cv'] = df['demand_std'] / df['demand']
+        
+        # Combined Uncertainty Formula (Same as Optimizer)
+        z = 1.96 # Standard 95% service level for batch
+        df['rop'] = (df['demand'] * df['lead_time']) + (z * np.sqrt(df['lead_time']*df['demand_std']**2 + df['demand']**2*df['lead_time_std']**2))
+        
+        # Risk Distribution
         bins = [0, 0.1, 0.2, 0.3, float('inf')]
         labels = ['Low', 'Medium', 'High', 'Critical']
         df['risk_level'] = pd.cut(df['cv'], bins=bins, labels=labels)
@@ -236,18 +243,36 @@ async def upload_csv(file: UploadFile = File(...)):
             "variance": f"{round(df['cv'].mean() * 100, 1)}%",
             "at_risk": int((df['cv'] > 0.3).sum()),
             "risk_chart": risk_dist.to_dict(orient='records'),
-            "scatter_points": df[['SKU', 'demand', 'lead_time', 'rop']].head(50).to_dict(orient='records'),
-            "filename": file.filename
+            "scatter_points": df[['SKU', 'demand', 'lead_time', 'rop']].head(50).to_dict(orient='records')
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"CSV processing failed: {str(e)}")
 
 @app.get("/api/pipeline")
 async def get_pipeline():
+    # Real-time checks for artifacts
+    data_status = "Active" if not prod_df.empty else "Missing"
+    model_status = "Active" if sku_models else "Missing"
+    
     return [
-        {"step": "Data Ingestion", "status": "Active", "desc": "FastAPI REST Listener", "icon_type": "database"},
-        {"step": "Stochastic Modeling", "status": "Active", "desc": "SciPy Engine", "icon_type": "cpu"},
-        {"step": "Optimization Logic", "status": "Active", "desc": "NumPy EOQ Calculator", "icon_type": "zap"}
+        {
+            "step": "Data Ingestion", 
+            "status": data_status, 
+            "desc": f"Serving {len(prod_df)} records from production_baseline.csv", 
+            "icon_type": "database"
+        },
+        {
+            "step": "Stochastic Modeling", 
+            "status": model_status, 
+            "desc": f"Inference engine active with {len(sku_models)} SKU weights", 
+            "icon_type": "cpu"
+        },
+        {
+            "step": "Optimization Logic", 
+            "status": "Active", 
+            "desc": "NumPy-accelerated EOQ & ROP vectorization engine", 
+            "icon_type": "zap"
+        }
     ]
 
 @app.get("/api/forecast/{sku_id}")
