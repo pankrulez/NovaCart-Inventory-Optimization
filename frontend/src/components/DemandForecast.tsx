@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import { 
   TrendingUp, Calendar, Target, Activity, 
-  Search, Info, AlertCircle, Loader2 
+  Search, Info, AlertCircle, Loader2, BrainCircuit, LineChart
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, Legend 
+  Tooltip, ResponsiveContainer 
 } from 'recharts';
 
 export default function ForecastSection() {
@@ -15,9 +15,8 @@ export default function ForecastSection() {
   const [selectedSku, setSelectedSku] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://novacart-inventory-optimization.onrender.com';
 
-  // 1. Initial Load: Get SKU list from the production baseline
   useEffect(() => {
     const fetchInitial = async () => {
       try {
@@ -33,7 +32,6 @@ export default function ForecastSection() {
     fetchInitial();
   }, []);
 
-  // 2. Fetch specific SKU Forecast
   useEffect(() => {
     if (!selectedSku) return;
     const fetchForecast = async () => {
@@ -51,7 +49,7 @@ export default function ForecastSection() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       
-      {/* --- HEADER & SKU SELECTOR (KEY COMPONENT PRESERVED) --- */}
+      {/* --- HEADER & SKU SELECTOR --- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-sm">
         <div className="space-y-1">
           <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic">Demand Projection</h2>
@@ -70,7 +68,27 @@ export default function ForecastSection() {
         </div>
       </div>
 
-      {/* --- MAIN CHART AREA (KEY COMPONENT PRESERVED) --- */}
+      {/* --- NEW: MODEL ARCHITECTURE BRIEF --- */}
+      <div className="bg-indigo-50 border-2 border-indigo-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-indigo-900 font-black uppercase text-[10px] tracking-widest">
+            <BrainCircuit size={14} /> Predictive Engine
+          </div>
+          <p className="text-[11px] text-indigo-800/70 leading-relaxed font-medium">
+            Uses a <strong className="text-indigo-900 font-black">Linear Lag Regression</strong> model trained on <code className="bg-indigo-100 px-1 rounded text-[10px]">sales_fact.csv</code>. The model identifies seasonal patterns and autoregressive trends to predict the next 12 months of demand.
+          </p>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-indigo-900 font-black uppercase text-[10px] tracking-widest">
+            <LineChart size={14} /> Confidence Bounds
+          </div>
+          <p className="text-[11px] text-indigo-800/70 leading-relaxed font-medium">
+            The shaded area represents a <strong className="text-indigo-900 font-black">95% Confidence Interval</strong>. This is derived from the Mean Absolute Percentage Error (MAPE) calculated during the backtesting phase in the production pipeline.
+          </p>
+        </div>
+      </div>
+
+      {/* --- MAIN CHART AREA --- */}
       <div className="bg-slate-900 rounded-[3rem] p-10 shadow-2xl border border-slate-800 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <TrendingUp size={200} className="text-indigo-500" />
@@ -106,7 +124,7 @@ export default function ForecastSection() {
         </div>
       </div>
 
-      {/* --- METRIC CARDS (KEY COMPONENT PRESERVED) --- */}
+      {/* --- METRIC CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <ForecastMetric icon={<Target size={16}/>} label="Model Accuracy" val={data?.metrics?.mape || "95.8%"} desc="MAPE variance baseline" />
         <ForecastMetric icon={<Activity size={16}/>} label="Model Type" val="Lag Regression" desc="Stochastic Linear Engine" />

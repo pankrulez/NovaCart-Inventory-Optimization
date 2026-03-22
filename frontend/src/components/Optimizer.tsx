@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Settings, Play, Save, CheckCircle, AlertTriangle, 
-  Zap, Clock, Package, TrendingDown, RefreshCw 
+  Zap, Clock, Package, TrendingDown, RefreshCw, Info, Database
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -28,7 +28,7 @@ export default function OptimizerSection({ initialParams }: any) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-        sku: params.sku, // MUST match the backend Pydantic model
+        sku: params.sku,
         avg_demand: params.avg_demand,
         demand_std: params.demand_std,
         avg_lead_time: params.avg_lead_time,
@@ -94,12 +94,32 @@ export default function OptimizerSection({ initialParams }: any) {
             </button>
           </div>
         </div>
+
+        {/* --- NEW: STOCHASTIC LOGIC SUMMARY --- */}
+        <div className="bg-slate-50 border-2 border-slate-100 p-8 rounded-[2.5rem] space-y-5">
+           <div className="flex items-center gap-2 text-slate-900 font-black uppercase text-[10px] tracking-widest italic">
+              <Database size={14} className="text-indigo-600" /> Operational Logic
+           </div>
+           <div className="space-y-4">
+              <LogicPoint 
+                title="Days to Stockout" 
+                desc="Calculated using real current_stock (inventory_snapshot.csv) divided by avg_weekly_demand (sales_fact.csv)." 
+              />
+              <LogicPoint 
+                title="Urgency Ranking" 
+                desc="A mathematical comparison between Days to Stockout and supplier Lead Time. If stock expires before delivery, CRITICAL status is triggered." 
+              />
+              <LogicPoint 
+                title="EOQ Optimization" 
+                desc="Uses cost_price (products_master.csv) to calculate order quantities that balance holding vs. ordering costs." 
+              />
+           </div>
+        </div>
       </div>
 
       {/* --- MAIN DASHBOARD --- */}
       <div className="col-span-12 lg:col-span-8 space-y-8">
         
-        {/* REAL DATA KPI GRID */}
         <div className="bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl relative overflow-hidden border border-slate-800">
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-10">
             <MetricBlock label="Safety Stock" val={results?.safety_stock} color="text-indigo-400" />
@@ -117,7 +137,6 @@ export default function OptimizerSection({ initialParams }: any) {
           </div>
         </div>
 
-        {/* OPERATIONAL PROTOCOL CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <StatusCard 
             label="Urgency Ranking" 
@@ -137,7 +156,14 @@ export default function OptimizerSection({ initialParams }: any) {
   );
 }
 
-// --- STYLED COMPONENTS ---
+function LogicPoint({ title, desc }: any) {
+  return (
+    <div className="space-y-1">
+      <h5 className="text-[9px] font-black text-slate-900 uppercase italic tracking-tighter">{title}</h5>
+      <p className="text-[10px] text-slate-500 font-medium leading-tight">{desc}</p>
+    </div>
+  );
+}
 
 function MetricBlock({ label, val, color, icon }: any) {
   return (

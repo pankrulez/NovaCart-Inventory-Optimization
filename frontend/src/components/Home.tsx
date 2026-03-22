@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ShieldCheck, AlertTriangle, Zap, Activity, 
-  ChevronRight, Package, DollarSign, Box, Loader2 
+  ChevronRight, Package, DollarSign, Box, Loader2, Info
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 
@@ -61,7 +61,27 @@ export default function HomeSection({ onNavigate }: any) {
         </div>
       </div>
 
-      {/* --- 2. STATIC KPI CARDS (NON-CLICKABLE) --- */}
+      {/* --- NEW: INFERENCE ENGINE SUMMARY --- */}
+      <div className="bg-indigo-50 border-2 border-indigo-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-indigo-900 font-black uppercase text-[10px] tracking-widest">
+            <Info size={14} /> Intelligence Overview
+          </div>
+          <p className="text-[11px] text-indigo-800/70 leading-relaxed font-medium">
+            The <strong className="text-indigo-900 font-black text-[12px]">Inventory Health Score</strong> is calculated by taking the inverse of the <strong className="text-indigo-900">Coefficient of Variation (CV)</strong> across all SKUs. If demand becomes volatile in <code className="bg-indigo-100 px-1 rounded">sales_fact.csv</code>, this score drops automatically.
+          </p>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-indigo-900 font-black uppercase text-[10px] tracking-widest">
+            <Zap size={14} /> Priority Logic
+          </div>
+          <p className="text-[11px] text-indigo-800/70 leading-relaxed font-medium">
+            Our <strong className="text-indigo-900 font-black text-[12px]">Action Feed</strong> identifies the "Worst SKU" by sorting processed data for highest risk/volatility, ensuring operational focus is directed to critical stockout threats first.
+          </p>
+        </div>
+      </div>
+
+      {/* --- 2. STATIC KPI CARDS --- */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard title="Stockout Rate" val={stats?.stockout_rate || "N/A"} icon={<AlertTriangle size={16}/>} />
         <KPICard title="Holding Cost" val={stats?.holding_cost || "N/A"} icon={<DollarSign size={16}/>} />
@@ -161,8 +181,6 @@ export default function HomeSection({ onNavigate }: any) {
     </div>
   );
 }
-
-// --- SUB-COMPONENTS ---
 
 function KPICard({ title, val, icon }: any) {
   return (
