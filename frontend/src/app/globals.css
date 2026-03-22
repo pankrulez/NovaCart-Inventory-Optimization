@@ -1,66 +1,39 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --neon-indigo: #8b5cf6;
-  --neon-emerald: #10b981;
+  --foreground-rgb: 15, 23, 42;
+  --background-rgb: 248, 250, 252;
 }
 
 body {
-  background-color: #020617; /* Deep Slate 950 */
-  color: #f8fafc;
-  overflow-x: hidden;
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Cinematic Background Blobs */
-.bg-glow-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  overflow: hidden;
-  background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
-}
-
-.blob {
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  background: var(--neon-indigo);
-  filter: blur(140px);
-  border-radius: 50%;
-  opacity: 0.15;
-  animation: move 25s infinite alternate;
-}
-
-.blob-2 {
-  background: var(--neon-emerald);
-  right: -100px;
-  bottom: -100px;
-  width: 500px;
-  height: 500px;
-  animation-delay: -5s;
-}
-
-@keyframes move {
-  from { transform: translate(-10%, -10%) scale(1); }
-  to { transform: translate(20%, 20%) scale(1.2); }
-}
-
-/* Glassmorphism Card Style */
-.glass-card {
-  background: rgba(15, 23, 42, 0.6);
+/* v4 Custom Utilities */
+@utility glass-card {
+  background-color: color-mix(in srgb, white 80%, transparent);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid color-mix(in srgb, var(--color-slate-200) 60%, transparent);
+  box-shadow: var(--shadow-sm);
 }
 
-.glass-card:hover {
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
-  transform: translateY(-4px);
+@utility btn-primary {
+  background-color: var(--color-indigo-600);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: var(--shadow-sm);
+  
+  &:hover {
+    background-color: var(--color-indigo-700);
+    box-shadow: var(--shadow-md);
+  }
+  
+  &:active {
+    scale: 0.95;
+  }
 }
