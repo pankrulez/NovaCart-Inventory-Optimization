@@ -272,15 +272,28 @@ async def upload_csv(file: UploadFile = File(...)):
         contents = await file.read()
         df = pd.read_csv(io.BytesIO(contents))
         
-        # REQUIRED COLUMNS: SKU, demand, demand_std, lead_time, lead_time_std
-        # Calculate Real Metrics
+        # --- NEW: DATA QUALITY REPORT LOGIC ---
+        # 1. Missing Values %
+        total_cells = np.prod(df.shape)
+        missing_cells = df.isnull().sum().sum()
+        missing_pct = round((missing_cells / total_cells) * 100, 2) if total_cells > 0 else 0
+
+        # 2. Duplicate Rows
+        duplicates = int(df.duplicated().sum())
+
+        # 3. Outlier Detection (Using IQR on 'demand')
+        outliers = 0
+        if 'demand' in df.columns:
+            Q1 = df['demand'].quantile(0.25)
+            Q3 = df['demand'].quantile(0.75)
+            IQR = Q3 - Q1
+            outliers = int(((df['demand'] < (Q1 - 1.5 * IQR)) | (df['demand'] > (Q3 + 1.5 * IQR))).sum())
+
+        # --- EXISTING BATCH LOGIC ---
         df['cv'] = df['demand_std'] / df['demand']
-        
-        # Combined Uncertainty Formula (Same as Optimizer)
-        z = 1.96 # Standard 95% service level for batch
+        z = 1.96 
         df['rop'] = (df['demand'] * df['lead_time']) + (z * np.sqrt(df['lead_time']*df['demand_std']**2 + df['demand']**2*df['lead_time_std']**2))
         
-        # Risk Distribution
         bins = [0, 0.1, 0.2, 0.3, float('inf')]
         labels = ['Low', 'Medium', 'High', 'Critical']
         df['risk_level'] = pd.cut(df['cv'], bins=bins, labels=labels)
@@ -289,11 +302,17 @@ async def upload_csv(file: UploadFile = File(...)):
 
         return {
             "skus": len(df),
-            "avg_lead": f"{round(df['lead_time'].mean(), 1)} Weeks",
+            "avg_lead": f"{round(df['lead_time'].mean(), 1)} Wks",
             "variance": f"{round(df['cv'].mean() * 100, 1)}%",
             "at_risk": int((df['cv'] > 0.3).sum()),
             "risk_chart": risk_dist.to_dict(orient='records'),
-            "scatter_points": df[['SKU', 'demand', 'lead_time', 'rop']].head(50).to_dict(orient='records')
+            "scatter_points": df[['SKU', 'demand', 'lead_time', 'rop']].head(50).to_dict(orient='records'),
+            # --- NEW: RETURN QUALITY METRICS ---
+            "data_quality": {
+                "missing_pct": missing_pct,
+                "duplicates": duplicates,
+                "outliers": outliers
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"CSV processing failed: {str(e)}")

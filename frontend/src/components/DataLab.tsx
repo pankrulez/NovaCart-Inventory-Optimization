@@ -6,10 +6,10 @@ import {
 } from 'recharts';
 import { 
   UploadCloud, CheckCircle2, BarChart3, PieChart, RefreshCcw, 
-  Download, AlertTriangle, FileText, Database, FileSpreadsheet, Info
+  Download, AlertTriangle, FileText, Database, FileSpreadsheet,
+  FileQuestion, Copy, Crosshair
 } from 'lucide-react';
 
-// Props: report and setReport are passed from page.tsx to persist data across tabs
 export default function DataLabSection({ report, setReport }: any) {
   const [isanalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +70,7 @@ export default function DataLabSection({ report, setReport }: any) {
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-700">
       {/* --- HEADER --- */}
-      <div className="text-center mb-10 space-y-4">
+      <div className="text-center mb-12 space-y-4">
         <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Inventory Data Lab</h2>
         <p className="text-slate-500 font-medium max-w-xl mx-auto">
           Upload your product catalog to perform automated batch stochastic modeling and risk segmentation.
@@ -81,26 +81,6 @@ export default function DataLabSection({ report, setReport }: any) {
         >
           <Download size={14} /> Download Sample Template
         </button>
-      </div>
-
-      {/* --- NEW: DATA LAB LOGIC BRIEF --- */}
-      <div className="bg-emerald-50 border-2 border-emerald-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-emerald-900 font-black uppercase text-[10px] tracking-widest">
-            <Database size={14} /> Batch Processing Logic
-          </div>
-          <p className="text-[11px] text-emerald-800/70 leading-relaxed font-medium">
-            The Data Lab performs <strong className="text-emerald-900 font-black">Vectorized ROP/SS calculations</strong>. It maps the stochastic engine across the entire uploaded dataset to calculate Safety Stock and Reorder Points for hundreds of SKUs simultaneously using NumPy-accelerated math.
-          </p>
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-emerald-900 font-black uppercase text-[10px] tracking-widest">
-            <BarChart3 size={14} /> Risk Distribution
-          </div>
-          <p className="text-[11px] text-emerald-800/70 leading-relaxed font-medium">
-            SKUs are automatically categorized into <strong className="text-emerald-900 font-black">Risk Buckets</strong> based on their Coefficient of Variation (CV). This helps identify "Long-Tail" items where demand is highly unpredictable and requires a specific buffer strategy.
-          </p>
-        </div>
       </div>
 
       {error && (
@@ -143,22 +123,55 @@ export default function DataLabSection({ report, setReport }: any) {
       ) : (
         /* --- REPORT VIEW --- */
         <div className="grid grid-cols-12 gap-6 animate-in slide-in-from-bottom-10 duration-700">
+          
           <div className="col-span-12 bg-slate-900 border border-slate-800 p-8 rounded-[3rem] flex flex-col md:flex-row items-center justify-between shadow-2xl gap-4">
             <div className="flex items-center gap-5">
               <div className="bg-indigo-500 p-4 rounded-2xl shadow-lg shadow-indigo-500/20"><CheckCircle2 className="text-white w-7 h-7" /></div>
               <div>
                 <h4 className="font-black text-white text-xl tracking-tight leading-tight uppercase italic">Analysis Complete</h4>
-                <p className="text-sm text-slate-400 font-medium italic">Derived metrics from {report.filename || 'catalog'}</p>
+                <p className="text-sm text-slate-400 font-medium italic">Derived metrics from dataset</p>
               </div>
             </div>
             <button onClick={() => setReport(null)} className="bg-white text-slate-900 px-6 py-3 rounded-xl font-black text-[10px] uppercase hover:bg-indigo-50 transition-all shadow-sm">New Upload</button>
           </div>
 
+          {/* --- NEW: DATA QUALITY DIAGNOSTICS --- */}
+          <div className="col-span-12 bg-white border-2 border-slate-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+             <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="p-3 bg-slate-50 rounded-xl"><Database size={20} className="text-slate-600" /></div>
+                <div>
+                   <h4 className="text-sm font-black uppercase tracking-tighter text-slate-900">Data Health Report</h4>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pre-processing validation</p>
+                </div>
+             </div>
+             <div className="flex flex-wrap gap-4 w-full md:w-auto">
+                <QualityPill 
+                  icon={<FileQuestion size={14} />} 
+                  label="Missing Values" 
+                  val={`${report.data_quality?.missing_pct || 0}%`} 
+                  isWarning={(report.data_quality?.missing_pct || 0) > 5} 
+                />
+                <QualityPill 
+                  icon={<Copy size={14} />} 
+                  label="Duplicates" 
+                  val={report.data_quality?.duplicates || 0} 
+                  isWarning={(report.data_quality?.duplicates || 0) > 0} 
+                />
+                <QualityPill 
+                  icon={<Crosshair size={14} />} 
+                  label="Demand Outliers" 
+                  val={report.data_quality?.outliers || 0} 
+                  isWarning={false} 
+                />
+             </div>
+          </div>
+
+          {/* --- KPI CARDS --- */}
           <ResultCard icon={<BarChart3 className="text-indigo-500" />} label="Total SKUs" val={report.skus} />
           <ResultCard icon={<RefreshCcw className="text-blue-500" />} label="Average Lead Time" val={report.avg_lead} />
           <ResultCard icon={<PieChart className="text-emerald-500" />} label="Avg. Demand CV" val={report.variance} />
           
-          <div className="col-span-12 md:col-span-3 bg-rose-50 border-2 border-rose-100 p-8 rounded-[2rem] shadow-lg flex flex-col justify-center">
+          <div className="col-span-12 md:col-span-3 bg-rose-50 border-2 border-rose-100 p-8 rounded-[2rem] shadow-sm flex flex-col justify-center">
              <div className="flex justify-between items-start mb-4">
                 <AlertTriangle className="text-rose-500" size={24} />
                 <span className="bg-rose-200 text-rose-700 text-[8px] font-black px-2 py-1 rounded-full uppercase">Action Required</span>
@@ -168,7 +181,7 @@ export default function DataLabSection({ report, setReport }: any) {
           </div>
 
           {/* --- CHARTS --- */}
-          <div className="col-span-12 lg:col-span-5 bg-white p-10 rounded-[3rem] border-2 border-slate-50 shadow-2xl shadow-slate-200/40 h-[400px]">
+          <div className="col-span-12 lg:col-span-5 bg-white p-10 rounded-[3rem] border-2 border-slate-100 shadow-sm h-[400px]">
             <h4 className="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest italic font-bold">Volatility Segmentation</h4>
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -187,7 +200,7 @@ export default function DataLabSection({ report, setReport }: any) {
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-7 bg-white p-10 rounded-[3rem] border-2 border-slate-50 shadow-2xl shadow-slate-200/40 h-[400px]">
+          <div className="col-span-12 lg:col-span-7 bg-white p-10 rounded-[3rem] border-2 border-slate-100 shadow-sm h-[400px]">
             <h4 className="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest italic font-bold">Inventory Profile (ROP Scale)</h4>
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -204,7 +217,7 @@ export default function DataLabSection({ report, setReport }: any) {
           </div>
 
           {/* --- ACTION FOOTER --- */}
-          <div className="col-span-12 bg-slate-900 text-white p-10 rounded-[3rem] flex flex-col md:flex-row items-center justify-between shadow-2xl mt-4">
+          <div className="col-span-12 bg-slate-900 text-white p-10 rounded-[3rem] flex flex-col md:flex-row items-center justify-between shadow-xl mt-4">
             <div className="flex items-center gap-6">
                <div className="bg-white/10 p-5 rounded-3xl border border-white/10 shadow-inner"><FileText className="text-indigo-400" size={32} /></div>
                <div>
@@ -225,10 +238,11 @@ export default function DataLabSection({ report, setReport }: any) {
   );
 }
 
+// --- SUB-COMPONENTS ---
 function ResultCard({ icon, label, val }: { icon: any, label: string, val: any }) {
   return (
-    <div className="col-span-12 md:col-span-3 bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-lg hover:shadow-xl transition-all duration-300">
-      <div className="mb-6">{icon}</div>
+    <div className="col-span-12 md:col-span-3 bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="mb-6 bg-slate-50 w-fit p-3 rounded-2xl">{icon}</div>
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
       <h3 className="text-3xl font-black text-slate-900 tracking-tighter italic">{val ?? "0"}</h3>
     </div>
@@ -237,8 +251,20 @@ function ResultCard({ icon, label, val }: { icon: any, label: string, val: any }
 
 function Badge({ icon, label }: { icon: any, label: string }) {
   return (
-    <span className="flex items-center gap-2 text-[10px] font-black text-slate-400 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 uppercase tracking-widest">
+    <span className="flex items-center gap-2 text-[10px] font-black text-slate-500 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 uppercase tracking-widest">
       {icon} {label}
     </span>
+  );
+}
+
+function QualityPill({ icon, label, val, isWarning }: any) {
+  return (
+    <div className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl border ${isWarning ? 'bg-rose-50 border-rose-100 text-rose-700' : 'bg-slate-50 border-slate-100 text-slate-700'}`}>
+       <div className={isWarning ? 'text-rose-500' : 'text-slate-400'}>{icon}</div>
+       <div>
+          <p className="text-[9px] font-black uppercase tracking-widest opacity-60">{label}</p>
+          <p className="text-sm font-black tracking-tighter">{val}</p>
+       </div>
+    </div>
   );
 }
