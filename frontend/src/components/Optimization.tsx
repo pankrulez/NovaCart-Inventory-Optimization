@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import { 
   DollarSign, Package, TrendingDown, ShieldAlert, 
-  ChevronRight, BarChart3, Info, Scale, RefreshCw, Database, Zap
+  ChevronRight, BarChart3, Info, Scale, RefreshCw, Database, Zap, Download, CheckCircle
 } from 'lucide-react';
 
 export default function OptimizationSection() {
@@ -14,10 +14,29 @@ export default function OptimizationSection() {
   const [selectedSku, setSelectedSku] = useState("");
   const [eoqData, setEoqData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false); // New state for notification
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://novacart-inventory-optimization.onrender.com';
 
-  // 1. Fetch SKU List on Mount
+  const exportPO = () => {
+    if (!eoqData || !selectedSku) return;
+
+    const headers = "SKU,Optimal_Order_Quantity,Order_Frequency_Days,Annual_Order_Cycles,Efficiency_Gain\n";
+    const row = `${selectedSku},${eoqData.eoq},${eoqData.freq_days},${eoqData.annual_orders},${eoqData.efficiency_gain}`;
+    
+    const blob = new Blob([headers + row], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NovaCart_PO_Rec_${selectedSku}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    // Trigger visual feedback
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
   useEffect(() => {
     const fetchSkus = async () => {
       try {
@@ -31,9 +50,8 @@ export default function OptimizationSection() {
       } catch (e) { console.error("EOQ SKU Fetch Error", e); }
     };
     fetchSkus();
-  }, []);
+  }, [API_URL]);
 
-  // 2. Fetch EOQ Analysis when SKU changes
   useEffect(() => {
     if (!selectedSku) return;
     const fetchEOQ = async () => {
@@ -46,13 +64,23 @@ export default function OptimizationSection() {
       finally { setLoading(false); }
     };
     fetchEOQ();
-  }, [selectedSku]);
+  }, [selectedSku, API_URL]);
 
   const chartData = eoqData?.chart_points || [];
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
       
+      {/* --- SUCCESS NOTIFICATION OVERLAY --- */}
+      {showSuccess && (
+        <div className="fixed top-24 right-8 z-50 animate-in slide-in-from-right-10 duration-500">
+          <div className="bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-400">
+            <CheckCircle size={18} />
+            <span className="text-[10px] font-black uppercase tracking-widest">PO Recommendation Exported</span>
+          </div>
+        </div>
+      )}
+
       {/* --- HEADER & SKU SELECTOR --- */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-sm">
         <div className="space-y-1">
@@ -69,7 +97,7 @@ export default function OptimizationSection() {
         </select>
       </div>
 
-      {/* --- NEW: SYSTEM LOGIC BRIEF --- */}
+      {/* --- SYSTEM LOGIC BRIEF --- */}
       <div className="bg-indigo-50 border-2 border-indigo-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-indigo-900 font-black uppercase text-[10px] tracking-widest">
@@ -89,7 +117,7 @@ export default function OptimizationSection() {
         </div>
       </div>
 
-      {/* --- 2. REAL DATA KPI LEADERBOARD --- */}
+      {/* --- REAL DATA KPI LEADERBOARD --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <EOQMetric label="Optimal Order Qty" val={eoqData?.eoq || "--"} icon={<Package size={16}/>} color="indigo" />
         <EOQMetric label="Annual Orders" val={eoqData?.annual_orders || "--"} icon={<BarChart3 size={16}/>} color="emerald" />
@@ -97,7 +125,6 @@ export default function OptimizationSection() {
       </div>
 
       <div className="grid grid-cols-12 gap-8">
-        {/* --- 3. TOTAL COST CURVE --- */}
         <div className="col-span-12 lg:col-span-8 bg-white p-10 rounded-[3rem] border-2 border-slate-50 shadow-2xl">
           <div className="flex justify-between items-center mb-8">
             <h3 className="font-black text-slate-900 italic flex items-center gap-3 uppercase text-xs">
@@ -113,7 +140,7 @@ export default function OptimizationSection() {
           <div className="h-[350px] w-full bg-slate-50/50 rounded-[2.5rem] p-8 border border-slate-100">
             {loading ? (
               <div className="h-full flex items-center justify-center text-slate-400 gap-3">
-                <RefreshCw className="animate-spin" /> <span className="text-[10px] font-black uppercase tracking-widest">Simulating Cost Curves...</span>
+                <RefreshCw className="animate-spin" size={24} /> <span className="text-[10px] font-black uppercase tracking-widest">Simulating Cost Curves...</span>
               </div>
             ) : chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -132,7 +159,6 @@ export default function OptimizationSection() {
           </div>
         </div>
 
-        {/* --- 4. EXECUTIVE SUMMARY --- */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
           <div className="bg-slate-900 text-white p-10 rounded-[3rem] shadow-2xl border border-slate-800 h-full">
             <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-8">Executive Summary</p>
@@ -155,7 +181,10 @@ export default function OptimizationSection() {
                   </p>
                </div>
 
-               <button className="w-full bg-white text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2 shadow-xl">
+               <button 
+                onClick={exportPO}
+                className="w-full bg-white text-slate-900 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all flex items-center justify-center gap-2 shadow-xl active:scale-95"
+               >
                   Export PO Recommendation <ChevronRight size={14} />
                </button>
             </div>
@@ -167,7 +196,6 @@ export default function OptimizationSection() {
 }
 
 // --- SUB-COMPONENTS ---
-
 function EOQMetric({ label, val, icon, color }: any) {
   const themes: any = {
     indigo: 'text-indigo-600 bg-indigo-50',
