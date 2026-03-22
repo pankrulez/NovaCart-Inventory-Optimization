@@ -97,6 +97,15 @@ def train_lag_regression(
     return model, list(X.columns)
 
 
+def safe_train_regression(series: pd.Series):
+    if len(series) < 6: # Need enough for lags + 1 target
+        return None, None
+    try:
+        return train_lag_regression(series)
+    except:
+        return None, None
+
+
 def forecast_with_lag_model(
     model: LinearRegression,
     feature_cols: list[str],

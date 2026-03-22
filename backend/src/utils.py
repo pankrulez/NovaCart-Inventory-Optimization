@@ -7,6 +7,9 @@ BASE_PATH = Path(__file__).parent.parent
 DATA_PATH_RAW = BASE_PATH / "data" / "raw"
 DATA_PATH_PROCESSED = BASE_PATH / "data" / "processed"
 
+MODEL_PATH = BASE_PATH / "models"
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+
 def load_raw_data(DATA_PATH = DATA_PATH_RAW) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load commonly used raw datasets across notebooks.
