@@ -48,7 +48,7 @@ export default function HomeSection({ onNavigate }: any) {
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
       
       {/* --- 1. ARCHITECTURE OVERVIEW --- */}
-      <div className="bg-white border border-slate-100 p-10 rounded-[3rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+      <div className="bg-white border border-slate-200 p-10 rounded-[3rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500">
           <Box size={180} className="text-indigo-600" />
         </div>
@@ -62,13 +62,13 @@ export default function HomeSection({ onNavigate }: any) {
       </div>
 
       {/* --- INFERENCE ENGINE SUMMARY --- */}
-      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 shadow-lg shadow-indigo-100/50">
+      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200/60 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 shadow-lg shadow-indigo-100/50">
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-indigo-700 font-black uppercase text-[10px] tracking-widest">
             <Info size={14} className="animate-pulse" /> Intelligence Overview
           </div>
           <p className="text-[11px] text-indigo-900/70 leading-relaxed font-medium">
-            The <strong className="text-indigo-900 font-black text-[12px]">Inventory Health Score</strong> is calculated by taking the inverse of the <strong className="text-indigo-900">Coefficient of Variation (CV)</strong> across all SKUs. If demand becomes volatile in <code className="bg-white px-1.5 py-0.5 rounded text-indigo-800 shadow-sm border border-indigo-100">sales_fact.csv</code>, this score drops automatically.
+            The <strong className="text-indigo-900 font-black text-[12px]">Inventory Health Score</strong> is calculated by taking the inverse of the <strong className="text-indigo-900">Coefficient of Variation (CV)</strong> across all SKUs. If demand becomes volatile in <code className="bg-white px-1.5 py-0.5 rounded text-indigo-800 shadow-sm border border-indigo-200">sales_fact.csv</code>, this score drops automatically.
           </p>
         </div>
         <div className="space-y-3">
@@ -90,10 +90,10 @@ export default function HomeSection({ onNavigate }: any) {
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-100 p-6 rounded-2xl flex items-center gap-4 text-rose-800 shadow-md shadow-rose-100/50">
+        <div className="bg-rose-50 border border-rose-200 p-6 rounded-2xl flex items-center gap-4 text-rose-800 shadow-md shadow-rose-100/50">
            <AlertTriangle size={20} className="animate-pulse" />
            <p className="text-xs font-bold uppercase tracking-tight">
-             Pipeline inactive. Run <code className="bg-white px-2 py-1 rounded shadow-sm border border-rose-100 text-rose-600">python -m backend.src.pipeline</code> to generate real data.
+             Pipeline inactive. Run <code className="bg-white px-2 py-1 rounded shadow-sm border border-rose-200 text-rose-600">python -m backend.src.pipeline</code> to generate real data.
            </p>
         </div>
       )}
@@ -101,7 +101,7 @@ export default function HomeSection({ onNavigate }: any) {
       <div className="grid grid-cols-12 gap-8">
         
         {/* --- 4. DYNAMIC HEALTH SCORE --- */}
-        <div className="col-span-12 lg:col-span-5 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-[3.5rem] p-12 text-white shadow-2xl shadow-indigo-900/20 relative overflow-hidden border border-slate-700/50 group">
+        <div className="col-span-12 lg:col-span-5 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-[3.5rem] p-12 text-white shadow-2xl shadow-indigo-900/20 relative overflow-hidden border border-slate-600 group">
           <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-110 transition-transform duration-700">
              <ShieldCheck size={280} className="text-indigo-300" />
           </div>
@@ -137,12 +137,12 @@ export default function HomeSection({ onNavigate }: any) {
               onAction={() => onNavigate('optimizer', stats.action_item.params)}
             />
           ) : (
-            <div className="p-10 rounded-[3rem] border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 text-center uppercase font-black text-[10px] tracking-widest shadow-inner">
+            <div className="p-10 rounded-[3rem] border-2 border-dashed border-slate-300 bg-slate-50 text-slate-500 text-center uppercase font-black text-[10px] tracking-widest shadow-inner">
                Waiting for Pipeline Analysis...
             </div>
           )}
 
-          <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-200/70 transition-shadow duration-300">
+          <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-slate-200/70 transition-shadow duration-300">
              <div className="flex items-center justify-between mb-6">
                 <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">Risk Driver Diagnostics</h4>
                 <div className="h-8 w-24 group">
@@ -161,7 +161,7 @@ export default function HomeSection({ onNavigate }: any) {
              </div>
              <table className="w-full text-left">
                 <thead>
-                   <tr className="text-[9px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-100">
+                   <tr className="text-[9px] font-black text-slate-400 uppercase tracking-tighter border-b border-slate-200">
                       <th className="pb-3">SKU ID</th>
                       <th className="pb-3">Primary Issue</th>
                       <th className="pb-3 text-right">Impact</th>
@@ -199,7 +199,7 @@ function KPICard({ title, val, icon, colorTheme }: any) {
   };
 
   return (
-    <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] shadow-lg shadow-slate-200/40 text-left w-full hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-out group cursor-default">
+    <div className="bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-lg shadow-slate-200/40 text-left w-full hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-out group cursor-default">
       <div className={`p-3 rounded-2xl w-fit mb-6 shadow-sm transition-all duration-300 ${themeStyles[colorTheme]}`}>
         {icon}
       </div>
@@ -227,7 +227,7 @@ function ScoreBar({ label, val, weight }: any) {
 
 function ActionCard({ title, desc, onAction }: any) {
   return (
-    <div className="p-8 rounded-[3rem] border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white shadow-xl shadow-indigo-100/50 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-2xl hover:shadow-indigo-200/50 hover:-translate-y-1 transition-all duration-300 group">
+    <div className="p-8 rounded-[3rem] border border-indigo-200/60 bg-gradient-to-br from-indigo-50 to-white shadow-xl shadow-indigo-100/50 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-2xl hover:shadow-indigo-200/50 hover:-translate-y-1 transition-all duration-300 group">
       <div className="space-y-2 text-left">
         <h4 className="text-sm font-black uppercase tracking-tighter text-indigo-900 group-hover:text-indigo-700 transition-colors">{title}</h4>
         <p className="text-xs font-medium text-indigo-700/70 max-w-sm leading-relaxed">{desc}</p>
@@ -241,7 +241,7 @@ function ActionCard({ title, desc, onAction }: any) {
 
 function RiskRow({ id, issue, impact, color }: any) {
   return (
-    <tr className="border-b border-slate-50 last:border-0 hover:bg-rose-50/40 transition-colors duration-200 group">
+    <tr className="border-b border-slate-100 last:border-0 hover:bg-rose-50/40 transition-colors duration-200 group">
       <td className="py-4 text-slate-900 font-black italic group-hover:text-rose-700 transition-colors">{id}</td>
       <td className="py-4 text-slate-500 font-medium group-hover:text-rose-600/80 transition-colors">{issue}</td>
       <td className={`py-4 text-right font-black uppercase tracking-widest text-[10px] ${color} flex items-center justify-end gap-2`}>
