@@ -1,270 +1,127 @@
-# 📦 Inventory Optimization for NovaCart (Demand Forecasting Project)
+# 📦 NovaCart: Enterprise Inventory Optimization Platform
 
-![CI](https://github.com/pankrulez/NovaCart-Inventory-Optimization/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/pankrulez/NovaCart-Inventory-Optimization/actions/workflows/ci.yml/badge.svg)](https://github.com/pankrulez/NovaCart-Inventory-Optimization/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688?logo=fastapi&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?logo=scipy&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?logo=pandas&logoColor=white)
 
 ## 📌 Project Overview
 
-NovaCart Online Retail Pvt. Ltd. operates a large pan-India e-commerce fulfilment network.
-This project focuses on improving inventory planning at the **East Zone Fulfilment Centre (EZFC)**, where the company has recently faced:
+NovaCart Online Retail Pvt. Ltd. operates a large pan-India e-commerce fulfilment network. This project focuses on solving critical inventory planning challenges at the **East Zone Fulfilment Centre (EZFC)**, including high stockouts for fast-moving SKUs, excess working capital lock-in, and unpredictable supplier lead times.
 
-- High stockouts for fast-moving SKUs
-
-- Excess inventory for slow-moving products
-
-- Inconsistent demand forecasts across categories
-
-- High variability in supplier lead times
-
-The goal of this project is not just to forecast demand, but to convert forecasts into operational inventory decisions such as reorder points and safety stock.
+**This is not just a demand forecasting model.** It is an end-to-end, operations-ready web application that translates raw historical data and statistical forecasts into actionable procurement decisions (Reorder Points, Safety Stock, and Economic Order Quantities).
 
 ---
 
-## 🎯 Business Objectives
+## 🏗️ System Architecture (Hybrid Cloud)
 
-The project aims to support NovaCart’s supply chain teams by building a data-driven, operations-ready inventory replenishment framework that can:
+The project has evolved from a monolithic Python script into a highly scalable, decoupled architecture:
 
-- Forecast weekly SKU-level demand
-
-- Identify volatile and unpredictable SKUs
-
-- Reduce stockouts while protecting service levels
-
-- Minimize excess inventory and working capital lock-in
-
-- Recommend clear replenishment rules usable by warehouse teams
+* **Presentation Layer (Frontend):** Built with **Next.js 14**, React, Tailwind CSS, and Recharts. Deployed to the edge (Vercel) for ultra-low latency interactive dashboards.
+* **Modeling Core (Backend):** Built with **FastAPI** and Python. Deployed as a dedicated microservice container (Render) to handle heavy `SciPy` and `NumPy` stochastic calculations and matrix vectorizations.
+* **Data Pipeline:** Automated ETL scripts transform raw CSVs into feature-engineered production artifacts (`production_baseline.csv`, `sku_models.pkl`).
 
 ---
 
-### 🎯 Target Business Outcomes
+## 🚀 Core Platform Modules
 
-- Service Level: ≥ 96%
+### 1. Command Center (Home)
+* **Inventory Health Score:** A dynamic metric calculated via the inverse Coefficient of Variation (CV) across the entire SKU catalog.
+* **Priority Action Feed:** Automatically sorts the processed pipeline data to identify and flag the highest-volatility SKUs, ensuring operational focus is directed to critical stockout threats first.
 
-- Stockout Rate: ≤ 2%
+### 2. Live Optimizer (ROP & EOQ)
+* **Stochastic Safety Stock:** Calculates dynamic buffers using the standard deviation of both demand and supplier lead time.
+* **Total Cost Minimization:** Features an Economic Order Quantity (EOQ) calculator that intersects holding costs and ordering costs to find the procurement "sweet spot."
+* **Lead Time Sensitivity:** Quantifies the exact dollar amount of capital locked up by supplier delays.
 
-- Excess Inventory Reduction: ≥ 15%
+### 3. Forecasting Engine
+* **Lag-Regression Modeling:** Replaces basic trend lines with a stochastic auto-regressive model.
+* **Confidence Bounds:** Generates 95% confidence intervals driven by the model's backtested Mean Absolute Percentage Error (MAPE).
 
----
-
-## 🧠 How This Project Is Different
-
-Most demand forecasting projects stop at model accuracy.
-This project goes end-to-end:
-
-`Demand → Forecast Error → Safety Stock → Reorder Point → Stress Testing`
-
-Key differentiators:
-
-- SKU segmentation (ABC/XYZ) before modeling
-
-- Forecasts evaluated from an inventory risk perspective, not accuracy alone
-
-- Explicit handling of supplier lead-time uncertainty
-
-- Scenario simulation for real-world disruptions
+### 4. Data Lab (Batch Processing Sandbox)
+* **Vectorized Inference:** Allows supply chain managers to upload new custom CSV datasets. The FastAPI backend maps the SciPy engine across hundreds of SKUs simultaneously.
+* **Data Quality Diagnostics:** Automatically scans uploads prior to simulation to report **Missing Values (%)**, **Duplicate Rows**, and **Demand Outliers** (via Interquartile Range analysis).
 
 ---
 
-## 📂 Dataset Summary
+## 📂 Project Structure
 
-The project uses four datasets:
-
-- Sales Fact – Historical customer demand
-
-- Inventory Snapshot – Warehouse stock positions
-
-- Products Master – Category, pricing, and product attributes
-
-- Suppliers Master – Vendor lead times and reliability
-
-All datasets are validated for:
-
-- Key consistency
-
-- Missing values
-
-- Business rule violations
-
-- Date correctness
-
----
-
-## 🛠️ Project Structure
-```
+```text
 NovaCart-Inventory-Optimization/
 │
-├── data/
-│   ├── raw/
-│   ├── processed/
+├── frontend/                  # Next.js UI Application
+│   ├── src/app/               # App Router & Layouts
+│   ├── src/components/        # Dashboard Modules (Optimizer, Forecast, DataLab)
+│   └── package.json
 │
-├── notebooks/
-│   ├── 01_business_understanding.ipynb
-│   ├── 02_data_validation_cleaning.ipynb
-│   ├── 03_exploratory_data_analysis.ipynb
-│   ├── 04_feature_engineering.ipynb
-│   ├── 05_sku_segmentation_abc_xyz.ipynb
-│   ├── 06_demand_forecasting.ipynb
-│   ├── 07_inventory_optimization.ipynb
-│   ├── 08_scenario_simulation.ipynb
+├── backend/                   # FastAPI Modeling Core
+│   ├── main.py                # REST API Endpoints
+│   ├── requirements.txt
+│   ├── src/                   # Core Python Modules (forecasting, inventory)
+│   ├── tests/                 # Pytest Suite
+│   └── data/                  # Raw and Processed Artifacts
 │
-├── reports/
-│   └── business_summary.md
-│
-├── src/
-│   ├── forecasting.py
-│   ├── inventory.py
-│   └── utils.py
-│
-└── README.md
+├── notebooks/                 # Original EDA & Model Prototyping
+├── pytest.ini                 # Pytest Configuration
+└── .github/workflows/         # CI/CD Pipelines
 ```
 
 ---
 
-## 🔍 Key Steps & Methodology
-1. Business Understanding
+## 💻 How to Run Locally
+Because the architecture is decoupled, you must spin up both the backend and frontend servers.
 
-    - Defined service level, stockout, and inventory cost objectives
+1. **Start the FastAPI Engine**
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-    - Identified operational constraints from a warehouse perspective
+# (Optional) Generate the production artifacts from raw data
+python -m src.pipeline    
 
-2. Data Validation & Cleaning
+# Start the REST API
+uvicorn main:app --reload --port 8000
+```
 
-    - Verified SKU and supplier relationships
+2. **Start the Next.js Client**
+Open a new terminal window:
 
-    - Handled missing and invalid values
+```Bash
+cd frontend
+npm install
 
-    - Flagged potential stockout events
+# Ensure the client points to the local Python server
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 
-3. Exploratory Data Analysis
+# Start the development server
+npm run dev
+```
 
-    - Demand concentration and Pareto analysis
-
-    - Category-level seasonality
-
-    - Demand volatility and stockout patterns
-
-    - Supplier lead-time variability
-
-4. Feature Engineering
-
-    - Lagged and rolling demand features
-
-    - Price and promotion signals
-
-    - Seasonality indicators
-
-    - Supplier risk and lead-time features
-
-5. SKU Segmentation (ABC / XYZ)
-
-    - ABC: Revenue importance
-
-    - XYZ: Demand predictability
-
-    - Combined into actionable SKU segments (AX, BY, CZ, etc.)
-
-6. Demand Forecasting
-
-    - Weekly SKU-level forecasting
-
-    - Baseline (naive) vs lag-based regression models
-
-    - Time-aware train/test split
-
-    - Focus on forecast error and bias
-
-7. Inventory Optimization
-
-    - Safety stock using demand & lead-time uncertainty
-
-    - Reorder point (ROP) calculation
-
-    - Segment-specific inventory buffers
-
-8. Scenario Simulation & Stress Testing
-
-    - Demand surge (festive / promotions)
-
-    - Supplier delay scenarios
-
-    - Service level impact analysis
-    
----
-
-## 📊 Key Results (Indicative)
-
-- High-value SKUs protected with stable service levels
-
-- Reduced stockout exposure for fast-moving products
-
-- Lower inventory buffers for long-tail SKUs
-
-- Clear trade-offs between service level and working capital
-
-`The final output is a SKU-level replenishment policy table that can be directly used by supply chain teams.`
+Navigate to `http://localhost:3000` to view the application.
 
 ---
 
 ## 🧪 Testing & Continuous Integration (CI)
+This project strictly adheres to CI/CD best practices to ensure core inventory logic remains mathematically sound.
 
-This project includes basic unit tests and automated CI checks to ensure that core logic remains correct and reproducible.
+- **Pytest Suite**: Validates business-critical formulas (e.g., safe arithmetic, time-aware demand forecasting, EOQ calculations) located in `backend/tests/`.
 
-### Unit Tests
-
-Key business and modeling logic is covered using pytest, including:
-
-- Data utility functions (safe arithmetic, data cleaning)
-
-- Time-aware demand forecasting helpers
-
-- Inventory optimization logic (safety stock & reorder point calculations)
-
-Tests are located in the `tests/` directory and focus on validating business-critical assumptions, not just code execution.
+- **GitHub Actions**: A CI pipeline (`.github/workflows/ci.yml`) automatically executes test suites on every push and pull request to `main`. Python paths (`PYTHONPATH`) are explicitly configured to ensure isolated, reproducible test environments.
 
 To run tests locally:
-```
-pytest
-```
-### Continuous Integration (CI)
-
-A GitHub Actions CI pipeline automatically runs all unit tests on:
-
-- Every push to the repository
-
-- Every pull request to main
-
-This ensures:
-
-- Inventory formulas remain consistent
-
-- Forecasting logic changes are validated
-
-- Regressions are caught early
-
-The CI configuration is defined in:
-```
-.github/workflows/ci.yml
+```Bash
+# From the root directory
+pytest backend/tests -v
 ```
 
 ---
 
-## 🚀 Future Improvements
+## 📬 Note for Engineering Managers & Recruiters
+This repository demonstrates the leap from building a machine learning model in a notebook to deploying a full-stack data product.
 
-- Multi-warehouse network optimization
-
-- Real-time demand signals
-
-- Automated retraining pipelines
-
-- Interactive dashboard for planners
-
----
-
-## 📬 Final Note
-
-This project was built to reflect how inventory problems are actually solved in practice, not just how models are trained.
-
-If you’re reviewing this as a recruiter or hiring manager:
-
-- Start with the Inventory Optimization and Scenario Simulation notebooks
-
-- Those show the most real-world thinking
+While the `notebooks/` directory showcases the exploratory data analysis and mathematical proofs, the `frontend/` and `backend/` directories demonstrate software engineering best practices: API design, state management, vectorization, containerized deployment, and UI/UX optimization for non-technical business stakeholders.
