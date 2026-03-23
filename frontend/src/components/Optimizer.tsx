@@ -64,14 +64,14 @@ export default function OptimizerSection({ initialParams }: any) {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+    <div className="grid grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
       
       {/* --- SIDEBAR CONTROLS --- */}
       <div className="col-span-12 lg:col-span-4 space-y-6">
-        <div className="bg-white p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-sm space-y-6">
+        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 space-y-6 group">
           <div className="flex items-center gap-3 mb-2">
-            <div className="bg-indigo-600 p-2 rounded-lg text-white"><Settings size={18} /></div>
-            <h3 className="text-sm font-black uppercase tracking-tighter italic">Policy Variables</h3>
+            <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-md shadow-indigo-600/30 group-hover:scale-105 transition-transform duration-300"><Settings size={18} /></div>
+            <h3 className="text-sm font-black uppercase tracking-tighter italic text-slate-900">Policy Variables</h3>
           </div>
 
           <Slider label="Target Service Level" min={0.80} max={0.99} step={0.01} 
@@ -80,25 +80,25 @@ export default function OptimizerSection({ initialParams }: any) {
           <Slider label="Lead Time (Weeks)" min={1} max={12} step={1} 
             val={params.avg_lead_time} onChange={(v: number) => setParams({...params, avg_lead_time: v})} />
 
-          <div className="pt-6 border-t border-slate-50">
+          <div className="pt-6 border-t border-slate-100">
             <button 
               onClick={handleExecute}
               disabled={isSaving}
-              className={`w-full py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 ${
-                success ? 'bg-emerald-500 text-white' : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-lg'
+              className={`w-full py-5 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 shadow-lg ${
+                success ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-slate-900/20 hover:shadow-indigo-500/30'
               }`}
             >
               {isSaving ? <RefreshCw className="animate-spin" size={14} /> : 
-               success ? <CheckCircle size={14} /> : <Save size={14} />}
+               success ? <CheckCircle size={14} className="animate-in zoom-in duration-300" /> : <Save size={14} className="group-hover:translate-y-px transition-transform" />}
               {success ? "Policy Applied" : "Commit to Production"}
             </button>
           </div>
         </div>
 
-        {/* --- NEW: STOCHASTIC LOGIC SUMMARY --- */}
-        <div className="bg-slate-50 border-2 border-slate-100 p-8 rounded-[2.5rem] space-y-5">
-           <div className="flex items-center gap-2 text-slate-900 font-black uppercase text-[10px] tracking-widest italic">
-              <Database size={14} className="text-indigo-600" /> Operational Logic
+        {/* --- STOCHASTIC LOGIC SUMMARY --- */}
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200/60 p-8 rounded-[2.5rem] space-y-5 shadow-lg shadow-indigo-100/50 hover:-translate-y-1 transition-all duration-300">
+           <div className="flex items-center gap-2 text-indigo-800 font-black uppercase text-[10px] tracking-widest italic">
+              <Database size={14} className="text-indigo-500 animate-pulse" /> Operational Logic
            </div>
            <div className="space-y-4">
               <LogicPoint 
@@ -120,18 +120,24 @@ export default function OptimizerSection({ initialParams }: any) {
       {/* --- MAIN DASHBOARD --- */}
       <div className="col-span-12 lg:col-span-8 space-y-8">
         
-        <div className="bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-[3.5rem] p-12 text-white shadow-2xl shadow-indigo-900/20 relative overflow-hidden border border-slate-600 group hover:shadow-indigo-500/20 transition-all duration-500">
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-10">
             <MetricBlock label="Safety Stock" val={results?.safety_stock} color="text-indigo-400" />
             <MetricBlock label="Reorder Point" val={results?.reorder_point} color="text-emerald-400" />
-            <MetricBlock label="Days to Stockout" val={results?.days_to_stockout} color="text-rose-400" icon={<Clock size={10}/>} />
+            <MetricBlock label="Days to Stockout" val={results?.days_to_stockout} color="text-rose-400" icon={<Clock size={10} className="animate-pulse" />} />
             <MetricBlock label="Rec. Order Qty" val={results?.recommended_order_qty} color="text-amber-400" icon={<Package size={10}/>} />
           </div>
           
-          <div className="h-48 mt-12 opacity-50">
+          <div className="h-48 mt-12 opacity-60 group-hover:opacity-100 transition-opacity duration-700">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={results?.chart_points}>
-                <Area type="monotone" dataKey="prob" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={3} />
+                <defs>
+                  <linearGradient id="colorProb" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#818cf8" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="prob" stroke="#818cf8" fill="url(#colorProb)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -156,11 +162,13 @@ export default function OptimizerSection({ initialParams }: any) {
   );
 }
 
+// --- HELPER COMPONENTS ---
+
 function LogicPoint({ title, desc }: any) {
   return (
-    <div className="space-y-1">
-      <h5 className="text-[9px] font-black text-slate-900 uppercase italic tracking-tighter">{title}</h5>
-      <p className="text-[10px] text-slate-500 font-medium leading-tight">{desc}</p>
+    <div className="space-y-1 group">
+      <h5 className="text-[9px] font-black text-indigo-900 uppercase italic tracking-tighter group-hover:text-indigo-600 transition-colors">{title}</h5>
+      <p className="text-[10px] text-indigo-900/60 font-medium leading-tight">{desc}</p>
     </div>
   );
 }
@@ -168,23 +176,40 @@ function LogicPoint({ title, desc }: any) {
 function MetricBlock({ label, val, color, icon }: any) {
   return (
     <div className="space-y-1">
-      <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
         {icon} {label}
       </p>
-      <h4 className={`text-4xl font-black italic tracking-tighter ${color}`}>{val ?? "--"}</h4>
+      <h4 className={`text-4xl font-black italic tracking-tighter ${color} drop-shadow-md`}>{val ?? "--"}</h4>
     </div>
   );
 }
 
 function StatusCard({ label, val, icon, isAlert, isAction }: any) {
+  // Dynamically set colors and borders based on the state
+  const baseStyle = "border p-8 rounded-[2.5rem] flex items-center gap-6 shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group cursor-default";
+  
+  let themeStyle = "bg-white border-slate-200 shadow-slate-200/50";
+  let iconStyle = "bg-slate-50 text-slate-600 group-hover:bg-slate-100";
+  let textStyle = "text-slate-900";
+
+  if (isAlert) {
+    themeStyle = "bg-rose-50 border-rose-200 shadow-rose-100/50";
+    iconStyle = "bg-rose-100 text-rose-600 group-hover:bg-rose-200 group-hover:scale-110 transition-transform";
+    textStyle = "text-rose-700";
+  } else if (isAction) {
+    themeStyle = "bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200/60 shadow-indigo-100/50";
+    iconStyle = "bg-indigo-100 text-indigo-600 group-hover:bg-indigo-200 group-hover:scale-110 transition-transform";
+    textStyle = "text-indigo-900";
+  }
+
   return (
-    <div className="bg-white border-2 border-slate-100 p-8 rounded-[2.5rem] flex items-center gap-6 shadow-sm">
-      <div className={`p-4 rounded-2xl ${isAlert ? 'bg-rose-100 text-rose-600' : isAction ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-600'}`}>
+    <div className={`${baseStyle} ${themeStyle}`}>
+      <div className={`p-4 rounded-2xl transition-all duration-300 ${iconStyle}`}>
         {icon}
       </div>
       <div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-        <h4 className={`${isAction ? 'text-xs font-bold text-slate-600 leading-tight' : 'text-xl font-black italic text-slate-900 uppercase'}`}>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-slate-500 transition-colors">{label}</p>
+        <h4 className={`${isAction ? `text-xs font-bold leading-tight ${textStyle}` : `text-xl font-black italic uppercase ${textStyle}`}`}>
           {val || "---"}
         </h4>
       </div>
@@ -194,15 +219,15 @@ function StatusCard({ label, val, icon, isAlert, isAction }: any) {
 
 function Slider({ label, min, max, step, val, onChange, isPercent }: any) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 group">
       <div className="flex justify-between text-[10px] font-black uppercase">
-        <span className="text-slate-400">{label}</span>
+        <span className="text-slate-400 group-hover:text-slate-600 transition-colors">{label}</span>
         <span className="text-indigo-600 font-bold">{isPercent ? `${(val * 100).toFixed(0)}%` : val}</span>
       </div>
       <input 
         type="range" min={min} max={max} step={step} value={val} 
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600" 
+        className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600 group-hover:bg-slate-200 transition-colors" 
       />
     </div>
   );
