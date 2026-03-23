@@ -26,8 +26,18 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest numpy pandas scikit-learn scipy
+          
+          # 1. Install from your backend requirements if it exists
+          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+          
+          # 2. Ensure testing and core math libraries are installed
+          pip install pytest httpx numpy pandas scikit-learn scipy fastapi
 
       - name: Run unit tests
+        env:
+          # CRITICAL FIX: Sets the root directory as the Python path
+          # This allows your tests to import modules like 'from backend.main import app'
+          PYTHONPATH: .
         run: |
-          pytest -v
+          # Explicitly target the backend/tests directory
+          pytest backend/tests -v

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.forecasting import (
+from backend.src.forecasting import (
     train_test_split_time,
     naive_forecast,
     prepare_lag_features,

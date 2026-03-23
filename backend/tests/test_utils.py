@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.utils import clip_negative_values, safe_divide
+from backend.src.utils import clip_negative_values, safe_divide
 
 
 def test_clip_negative_values():

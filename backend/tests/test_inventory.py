@@ -1,5 +1,5 @@
 import pandas as pd
-from src.inventory import (
+from backend.src.inventory import (
     calculate_z_score,
     calculate_safety_stock,
     calculate_reorder_point,
